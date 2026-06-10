@@ -1,0 +1,6 @@
+{
+  "name": "Tremz.in",
+  "description": "Uma ferramenta mineira elegante para encurtar links e hospedar fotos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
