@@ -37,13 +37,6 @@ export interface CountryStat {
   count: number;
 }
 
-export type ViewType =
-  | 'home'
-  | 'login'
-  | 'signup'
-  | 'redirecting'
-  | 'dashboard-links'
-  | 'dashboard-photos'
-  | 'dashboard-stats'
-  | 'dashboard-settings'
-  | 'photo-detail';
+// ViewType is no longer needed — navigation is handled by React Router paths.
+// Routes: / | /login | /signup | /redirecting | /dashboard/links | /dashboard/photos | /dashboard/stats | /dashboard/settings
+

@@ -1,41 +1,50 @@
 import React, { useState } from 'react';
-import { Menu, X, Link as LinkIcon, Image as ImageIcon, BarChart3, LogOut, User, Coffee, Train } from 'lucide-react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { Menu, X, Link as LinkIcon, Image as ImageIcon, BarChart3, LogOut, Coffee } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ViewType } from '../types';
+import { useApp } from '../context/AppContext';
 import { LOGO_URL } from '../data';
 
-interface HeaderProps {
-  currentView: ViewType;
-  onNavigate: (view: ViewType) => void;
-  currentUser: { email: string; name: string; avatarUrl?: string } | null;
-  onLogout: () => void;
-}
-
-export default function Header({ currentView, onNavigate, currentUser, onLogout }: HeaderProps) {
+export default function Header() {
+  const { currentUser, handleLogout } = useApp();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [
-    { label: 'Início', view: 'home' as ViewType, icon: Coffee },
+    { label: 'Início', to: '/', icon: Coffee },
     ...(currentUser
       ? [
-          { label: 'Meus Links', view: 'dashboard-links' as ViewType, icon: LinkIcon },
-          { label: 'Minhas Fotos', view: 'dashboard-photos' as ViewType, icon: ImageIcon },
-          { label: 'Painel Geral', view: 'dashboard-stats' as ViewType, icon: BarChart3 },
+          { label: 'Meus Links', to: '/dashboard/links', icon: LinkIcon },
+          { label: 'Minhas Fotos', to: '/dashboard/photos', icon: ImageIcon },
+          { label: 'Painel Geral', to: '/dashboard/stats', icon: BarChart3 },
         ]
       : []),
   ];
 
-  const handleNavClick = (view: ViewType) => {
-    onNavigate(view);
+  const onLogout = () => {
+    handleLogout();
+    navigate('/');
     setIsMenuOpen(false);
   };
+
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+      isActive
+        ? 'bg-surface-container-high text-primary border border-outline-variant/30'
+        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'
+    }`;
+
+  const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `flex items-center space-x-3 w-full px-4 py-2.5 rounded-lg text-sm font-bold transition ${
+      isActive ? 'bg-primary text-surface' : 'text-on-surface-variant hover:bg-surface-container-low'
+    }`;
 
   return (
     <nav className="sticky top-0 z-50 bg-surface/90 backdrop-blur-md border-b border-surface-container-high shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo Brand */}
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => handleNavClick('home')}>
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-surface-container-low border border-primary-container shadow-inner p-[1px]">
               <img
                 src={LOGO_URL}
@@ -52,31 +61,22 @@ export default function Header({ currentView, onNavigate, currentUser, onLogout 
                 Uai, encurtou!
               </span>
             </div>
-          </div>
+          </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop nav */}
           <div className="hidden md:flex items-center space-x-6">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentView === item.view || (item.view === 'dashboard-links' && currentView.startsWith('dashboard'));
               return (
-                <button
-                  key={item.view}
-                  onClick={() => handleNavClick(item.view)}
-                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                    isActive
-                      ? 'bg-surface-container-high text-primary border border-outline-variant/30'
-                      : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'
-                  }`}
-                >
+                <NavLink key={item.to} to={item.to} className={navLinkClass} end={item.to === '/'}>
                   <Icon className="w-4 h-4 opacity-80" />
                   <span>{item.label}</span>
-                </button>
+                </NavLink>
               );
             })}
           </div>
 
-          {/* Auth State Desktop */}
+          {/* Desktop auth */}
           <div className="hidden md:flex items-center space-x-4">
             {currentUser ? (
               <div className="flex items-center space-x-3 pl-4 border-l border-surface-container-highest">
@@ -84,8 +84,8 @@ export default function Header({ currentView, onNavigate, currentUser, onLogout 
                   <span className="text-xs font-semibold text-primary">{currentUser.name}</span>
                   <span className="text-[10px] text-on-surface-variant italic">Mineiro Autenticado</span>
                 </div>
-                <div 
-                  onClick={() => handleNavClick('dashboard-links')}
+                <Link
+                  to="/dashboard/links"
                   className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold text-sm border border-outline-variant cursor-pointer hover:bg-surface-container-highest transition overflow-hidden"
                 >
                   {currentUser.avatarUrl ? (
@@ -93,7 +93,7 @@ export default function Header({ currentView, onNavigate, currentUser, onLogout 
                   ) : (
                     currentUser.name.charAt(0).toUpperCase()
                   )}
-                </div>
+                </Link>
                 <button
                   onClick={onLogout}
                   title="Sair da Estação"
@@ -104,27 +104,27 @@ export default function Header({ currentView, onNavigate, currentUser, onLogout 
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handleNavClick('login')}
+                <NavLink
+                  to="/login"
                   className="px-4 py-2 text-sm font-semibold text-primary hover:bg-surface-container-low rounded-lg transition cursor-pointer"
                 >
                   Entrar
-                </button>
-                <button
-                  onClick={() => handleNavClick('signup')}
+                </NavLink>
+                <NavLink
+                  to="/signup"
                   className="px-4 py-2 text-sm font-bold bg-primary text-surface rounded-lg hover:bg-primary-container transition shadow-sm cursor-pointer"
                 >
                   Criar Conta
-                </button>
+                </NavLink>
               </div>
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile hamburger */}
           <div className="flex md:hidden items-center space-x-2">
             {currentUser && (
-              <div 
-                onClick={() => handleNavClick('dashboard-links')}
+              <Link
+                to="/dashboard/links"
                 className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold text-sm border border-outline-variant mr-1 overflow-hidden"
               >
                 {currentUser.avatarUrl ? (
@@ -132,7 +132,7 @@ export default function Header({ currentView, onNavigate, currentUser, onLogout 
                 ) : (
                   currentUser.name.charAt(0).toUpperCase()
                 )}
-              </div>
+              </Link>
             )}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -144,7 +144,7 @@ export default function Header({ currentView, onNavigate, currentUser, onLogout 
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -156,20 +156,17 @@ export default function Header({ currentView, onNavigate, currentUser, onLogout 
             <div className="px-4 pt-2 pb-4 space-y-2">
               {menuItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = currentView === item.view;
                 return (
-                  <button
-                    key={item.view}
-                    onClick={() => handleNavClick(item.view)}
-                    className={`flex items-center space-x-3 w-full px-4 py-2.5 rounded-lg text-sm font-bold transition ${
-                      isActive
-                        ? 'bg-primary text-surface'
-                        : 'text-on-surface-variant hover:bg-surface-container-low'
-                    }`}
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === '/'}
+                    className={mobileNavLinkClass}
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
-                  </button>
+                  </NavLink>
                 );
               })}
 
@@ -200,18 +197,20 @@ export default function Header({ currentView, onNavigate, currentUser, onLogout 
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2 pt-2">
-                  <button
-                    onClick={() => handleNavClick('login')}
+                  <NavLink
+                    to="/login"
                     className="px-4 py-2.5 text-sm font-bold text-primary border border-outline-variant hover:bg-surface-container-low rounded-lg text-center transition"
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     Entrar
-                  </button>
-                  <button
-                    onClick={() => handleNavClick('signup')}
+                  </NavLink>
+                  <NavLink
+                    to="/signup"
                     className="px-4 py-2.5 text-sm font-bold bg-primary text-surface rounded-lg text-center transition hover:bg-primary-container shadow-xs"
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     Cadastrar
-                  </button>
+                  </NavLink>
                 </div>
               )}
             </div>
