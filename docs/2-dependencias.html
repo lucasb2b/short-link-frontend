@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2. Dependências e Bibliotecas - Tremz</title>
+    <style>
+        :root {
+            --primary: #5d4037;
+            --primary-container: #8b6b61;
+            --secondary: #904d1e;
+            --surface: #fdf8f5;
+            --surface-container: #f5ebe6;
+            --on-surface: #201a18;
+            --on-surface-variant: #53433f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-family: Georgia, serif;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--surface-container);
+        }
+
+        h2 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--surface-container);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        h3 {
+            color: var(--secondary);
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-back {
+            display: inline-block;
+            background-color: var(--primary-container);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-back:hover {
+            background-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📦 2. Dependências e Bibliotecas</h1>
+</header>
+
+<main>
+    <a href="./index.html" class="btn-back">⬅ Voltar ao Portal</a>
+
+    <p>Todo projeto de ponta precisa de algumas ferramentas já prontas para evitar reinventar a roda. Abaixo detalhamos as bibliotecas (packages) instaladas via <code>npm</code> listadas no seu <code>package.json</code>, e a razão pela qual foram escolhidas para o Tremz.</p>
+
+    <h2>Dependências de Produção (<code>dependencies</code>)</h2>
+    <p>São os pacotes necessários para o código da aplicação rodar no navegador do usuário.</p>
+
+    <h3><code>react</code> e <code>react-dom</code></h3>
+    <p>O React é o chassi do nosso trem! É a principal biblioteca para construção de interfaces de usuário (UI) baseada em componentes, criada pelo Facebook. Permite criar código declarativo que "reage" e atualiza a tela automaticamente quando variáveis de estado (<code>useState</code>) mudam. O <code>react-dom</code> se encarrega de injetar e manipular isso na página da web (DOM HTML real).</p>
+
+    <h3><code>lucide-react</code></h3>
+    <p>Ícones bonitos, padronizados e extremamente leves. Provê um conjunto enorme de ícones SVG prontos para uso como componentes React. Exemplo: no código, basta escrever <code>&lt;Coffee /&gt;</code> que um ícone de xícara de café será desenhado na tela! Muito usado no nosso cabeçalho e modais.</p>
+
+    <h3><code>motion</code></h3>
+    <p>Animações fluidas e premium. É a biblioteca (antes conhecida como Framer Motion) que cuida das transições, modais surgindo suavemente, ou do movimento fluido entre abas na página. No código, a tag <code>&lt;motion.div&gt;</code> é o motorzinho responsável pela mágica visual.</p>
+
+    <h3><code>@tailwindcss/vite</code></h3>
+    <p>A união do Vite com o TailwindCSS 4 (a nova versão do Tailwind). O Tailwind é a biblioteca que permite estilizar a aplicação apenas colocando nomes de classes diretamente no HTML (ex: <code>className="bg-primary text-white p-4"</code>). Esse plugin liga o Tailwind ao bundler do Vite para garantir performance máxima, varrendo o código e compilando apenas o CSS que realmente utilizamos.</p>
+
+    <h3><code>@google/genai</code> (Google AI Studio)</h3>
+    <p>Esse é o "cérebro emprestado" da ferramenta. Um pacote oficial que possibilita chamar os modelos da família Gemini. Embora atualmente no projeto seja mais um legado ou espaço reservado de uso (caso o backend seja acoplado futuramente na mesma base ou se consumirmos uma API diretamente do client-side com chave restrita).</p>
+
+    <h2>Dependências de Desenvolvimento (<code>devDependencies</code>)</h2>
+    <p>São as ferramentas que ajudam a gente a <em>escrever</em> código, mas que não são enviadas para o computador de quem está apenas navegando no site.</p>
+
+    <h3><code>vite</code></h3>
+    <p>O nosso "servidor" de desenvolvimento e empacotador (bundler). Em outras palavras, quando rodamos <code>npm run dev</code>, é o Vite quem sobe o site no <code>http://localhost:3000</code> na velocidade da luz. Quando publicamos para produção (<code>npm run build</code>), o Vite comprime os arquivos para ficarem mínimos e ultrarrápidos.</p>
+
+    <h3><code>typescript</code></h3>
+    <p>Adiciona os "trilhos" seguros ao JavaScript. Permite declarar quais tipos de dados variáveis devem ter (ex: string, número). Ajuda a pegar erros antes mesmo do código ser executado.</p>
+
+    <h3><code>tailwindcss</code> e <code>autoprefixer</code></h3>
+    <p>Motores locais de estilização do Tailwind. O Autoprefixer assegura que os estilos compilados vão funcionar mesmo em navegadores levemente mais antigos adicionando prefixos específicos caso necessário.</p>
+
+    <h3><code>@types/node</code> e <code>@types/express</code></h3>
+    <p>Pacotes de definições de tipos para o TypeScript, permitindo que a IDE saiba quais as funções corretas e parâmetros disponíveis se formos usar algo relacionado ao backend/Node.js nativo.</p>
+</main>
+
+</body>
+</html>

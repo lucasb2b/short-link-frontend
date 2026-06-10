@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4. Integração com Backend - Tremz</title>
+    <style>
+        :root {
+            --primary: #5d4037;
+            --primary-container: #8b6b61;
+            --secondary: #904d1e;
+            --surface: #fdf8f5;
+            --surface-container: #f5ebe6;
+            --on-surface: #201a18;
+            --on-surface-variant: #53433f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-family: Georgia, serif;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--surface-container);
+        }
+
+        h2 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--surface-container);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        h3 {
+            color: var(--secondary);
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        pre {
+            background: var(--surface-container);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: monospace;
+            border: 1px solid var(--primary-container);
+        }
+
+        .btn-back {
+            display: inline-block;
+            background-color: var(--primary-container);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-back:hover {
+            background-color: var(--primary);
+        }
+
+        .tip-box {
+            background-color: #fff9db;
+            border-left: 4px solid #f59f00;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🔌 4. Integração com Backend (APIs)</h1>
+</header>
+
+<main>
+    <a href="./index.html" class="btn-back">⬅ Voltar ao Portal</a>
+
+    <p>O Tremz atual é maravilhoso, mas para levar isso a público, precisamos ligá-lo a um servidor real (Backend) e a um banco de dados de verdade, abandonando a simulação do <code>localStorage</code>.</p>
+
+    <p>Abaixo listamos os arquivos e as funções exatas onde você <strong>deve</strong> realizar essas modificações consumindo chamadas HTTP, como <code>fetch()</code> nativo ou instalando a biblioteca <code>axios</code>.</p>
+
+    <h2>1. Carregamento Inicial de Dados</h2>
+    <p>Hoje a nossa aplicação carrega variáveis em <code>src/App.tsx</code> assim que inicia utilizando dados estáticos do arquivo <code>data.ts</code>.</p>
+
+    <p><strong>Onde mudar:</strong> Substitua as inicializações do <code>useState</code> no topo do <code>App.tsx</code> para usar o <code>useEffect</code> efetuando o <code>GET</code> da API no momento em que o componente monta:</p>
+
+    <pre><code>const [links, setLinks] = useState&lt;LinkItem[]&gt;([]); // Inicia vazio
+
+useEffect(() => {
+  // Dispara uma vez que a página carrega
+  async function fetchLinks() {
+    try {
+      const response = await fetch('https://Sua-API-Tremz.com/api/links', {
+        headers: { 'Authorization': `Bearer ${currentUser.token}` } // Se autenticado
+      });
+      const data = await response.json();
+      setLinks(data);
+    } catch(err) {
+      console.error("Ô trem difícil, falhou ao puxar dados", err);
+    }
+  }
+  fetchLinks();
+}, []); // O array vazio assegura que só puxe uma vez ao carregar a home.</code></pre>
+
+    <p><em>(Faça isso de maneira análoga para as Fotos)</em></p>
+
+    <h2>2. Encurtando um Link (POST)</h2>
+    <p>Atualmente a função simulada é a <code>handleShortenLink</code> dentro de <code>src/App.tsx</code> por volta da linha 158.</p>
+
+    <p><strong>O que fazer:</strong> Ao invés de gerar um ID aleatório com <code>Math.random()</code>, precisamos pedir pra API oficial fazer o encurtamento no servidor e gravar no BD.</p>
+
+    <pre><code>const handleShortenLink = async (originalUrl: string): Promise&lt;LinkItem&gt; => {
+  const response = await fetch('https://Sua-API-Tremz.com/api/shorten', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: originalUrl })
+  });
+  
+  const newLink = await response.json(); 
+  // O backend responde com o ID e URL encurtada reais
+  setLinks((prev) => [newLink, ...prev]);
+  showToast('Trem encurtado com sucesso na base de dados, uai!');
+  return newLink;
+};</code></pre>
+
+    <h2>3. Sistema de Login e Autenticação</h2>
+    <p>O <code>App.tsx</code> possui <code>handleLogin</code> e <code>handleSignup</code>. Atualmente, ambos varrem um array em memória que finge ser um banco.</p>
+
+    <p><strong>Como integrar JWT (Token):</strong></p>
+    <ul>
+        <li>Na função <code>handleLogin</code>, faça um POST para o Endpoint do backend: <code>/api/auth/login</code> enviando <code>loginEmail</code> e <code>loginPass</code>.</li>
+        <li>Se o retorno for sucesso (200 OK), a API do backend vai te retornar um Token (JWT).</li>
+        <li>Você vai salvar esse Token de verdade usando o localStorage: <code>localStorage.setItem('auth_token', responseData.token)</code>.</li>
+        <li>Com isso, todo os requests futuros listados acima (como puxar as fotos e links <em>privados</em> do mineiro) usarão esse token no <code>Header Authorization</code>.</li>
+    </ul>
+
+    <h2>4. O Sistema de Imagens</h2>
+    <p>Hoje a imagem é carregada de um URL público mockado ou do bucket base local simulado no <code>PhotoUploader.tsx</code>.</p>
+
+    <p>Para o backend real:</p>
+    <ul>
+        <li>No Frontend (<code>handleUploadPhoto</code>), faça upload do arquivo via formato <code>FormData</code> para bater numa API que suporta <code>multipart/form-data</code>.</li>
+        <li>O Backend irá processar a imagem, subir para um serviço em nuvem (ex: Amazon S3 ou Google Cloud Storage) e devolver o URL permanente da imagem armazenada no servidor.</li>
+        <li>Você salva o link permanente devolvido no array <code>photos</code>.</li>
+    </ul>
+
+    <div class="tip-box">
+        <strong>Dica de Ouro:</strong> Antes de sair mexendo diretamente no <code>App.tsx</code> engordando o arquivo, recomendo criar uma nova pasta <code>src/services/</code> e construir um arquivo <code>api.ts</code>. Centralize lá todas as configurações do <code>fetch</code> ou <code>Axios</code>, e no <code>App.tsx</code> apenas invoque funções assíncronas simples como <code>await api.shortenUrl(minhaUrl)</code> para manter o painel da locomotiva limpo e os motores organizados.
+    </div>
+</main>
+
+</body>
+</html>

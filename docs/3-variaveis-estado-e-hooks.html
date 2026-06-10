@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3. Variáveis de Estado e Hooks - Tremz</title>
+    <style>
+        :root {
+            --primary: #5d4037;
+            --primary-container: #8b6b61;
+            --secondary: #904d1e;
+            --surface: #fdf8f5;
+            --surface-container: #f5ebe6;
+            --on-surface: #201a18;
+            --on-surface-variant: #53433f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-family: Georgia, serif;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--surface-container);
+        }
+
+        h2 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--surface-container);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        h3 {
+            color: var(--secondary);
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        pre {
+            background: var(--surface-container);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: monospace;
+            border: 1px solid var(--primary-container);
+        }
+
+        .btn-back {
+            display: inline-block;
+            background-color: var(--primary-container);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-back:hover {
+            background-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🎣 3. Variáveis de Estado e Hooks</h1>
+</header>
+
+<main>
+    <a href="./index.html" class="btn-back">⬅ Voltar ao Portal</a>
+
+    <p>Nesta documentação, abordamos como o coração do aplicativo se comporta e onde a memória dele mora. No ambiente React, usamos <strong>Hooks</strong> — literalmente "ganchos" — para fisgar e atualizar valores sem precisar recarregar a página da web inteira.</p>
+
+    <p>Todo o grosso da nossa memória principal (Estado Global) mora no arquivo <code>src/App.tsx</code>.</p>
+
+    <h2>Hooks do React Utilizados</h2>
+
+    <h3>1. <code>useState</code> (A memória de curto prazo)</h3>
+    <p>O Hook <code>useState</code> é o mecanismo que avisa ao React: <em>"Ei, quando essa variável mudar, redesenhe a tela!"</em> Ele nos entrega dois itens: a <strong>variável em si</strong> e a <strong>função para atualizar</strong> essa variável. Exemplo prático: <code>const [links, setLinks] = useState([...])</code></p>
+
+    <h3>2. <code>useEffect</code> (Os "Ouvintes" / Reflexos)</h3>
+    <p>O <code>useEffect</code> serve para reagir a efeitos colaterais (algo que muda independentemente da tela, tipo o carregamento do código inicial, uma chamada de API, ou para salvar algo na memória quando um dado for atualizado).</p>
+
+    <h2>🗄️ As Variáveis Globais (Estado Principal) em <code>App.tsx</code></h2>
+    <p>Como não temos Redux ou ContextAPI ativados nesse momento, quase todas as variáveis globais residem no pai-de-todos, o componente <code>App</code>.</p>
+
+    <ul>
+        <li><strong><code>links</code> e <code>setLinks</code>:</strong> Guarda a lista (Array) de todos os links que o usuário encurtou. Persistência: Busca os dados de <code>localStorage.getItem('tremz_links')</code>. Se não achar, puxa os links falsos (INITIAL_LINKS).</li>
+        <li><strong><code>photos</code> e <code>setPhotos</code>:</strong> Guarda a lista de todas as fotos armazenadas na nossa galeria. Persistência: Salva no <code>localStorage.getItem('tremz_photos')</code>.</li>
+        <li><strong><code>currentUser</code> e <code>setCurrentUser</code>:</strong> Guarda os dados do mineiro logado na sessão ativa! Se for <code>null</code>, o usuário está deslogado e o Header mostrará os botões "Entrar" e "Cadastrar". Persistência: O <code>useEffect</code> monitora sempre que essa variável é atualizada, e espelha no localStorage (<code>tremz_user</code>).</li>
+        <li><strong><code>registeredUsers</code> e <code>setRegisteredUsers</code>:</strong> Simula de forma fajuta o banco de dados do Backend para o sistema de autenticação, armazenando todo mundo que "criou uma conta".</li>
+        <li><strong><code>currentView</code> e <code>setCurrentView</code>:</strong> É a nossa "Bússola de Rotas" interna. Como não usamos bibliotecas como o React Router, nós fazemos um roteamento condicional local: se <code>currentView === 'home'</code>, mostramos o hero principal; se <code>currentView === 'dashboard-links'</code>, mostramos o painel administrativo.</li>
+    </ul>
+
+    <h2>A Mágica da Sincronização LocalStorage</h2>
+    <p>Observe os seguintes blocos espalhados no nosso App:</p>
+
+    <pre><code>useEffect(() => {
+  localStorage.setItem('tremz_links', JSON.stringify(links));
+}, [links]);</code></pre>
+
+    <p><strong>O que isso significa?</strong> A array final do hook (<code>[links]</code>) avisa o react: <em>"Fique vigiando essa variável específica"</em>. Toda vez que uma função chamar um <code>setLinks(novoLink)</code>, a variável altera. O react então redesenha a tela na hora com o novo item e logo em seguida o <code>useEffect</code> dispara automaticamente atualizando a gaveta permanente (<code>localStorage</code>) do seu navegador!</p>
+</main>
+
+</body>
+</html>

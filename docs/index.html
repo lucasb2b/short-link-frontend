@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentação do Projeto Tremz</title>
+    <style>
+        :root {
+            --primary: #5d4037;
+            --primary-container: #8b6b61;
+            --secondary: #904d1e;
+            --surface: #fdf8f5;
+            --surface-container: #f5ebe6;
+            --on-surface: #201a18;
+            --on-surface-variant: #53433f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-family: Georgia, serif;
+        }
+
+        header p {
+            margin-top: 0.5rem;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--surface-container);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            border-color: var(--secondary);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-right: 1.5rem;
+            color: var(--secondary);
+            background: var(--surface-container);
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .card-content h2 {
+            margin: 0 0 0.5rem 0;
+            color: var(--primary);
+        }
+
+        .card-content p {
+            margin: 0 0 1rem 0;
+            color: var(--on-surface-variant);
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-container);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--on-surface-variant);
+            font-size: 0.9rem;
+            margin-top: 4rem;
+            border-top: 1px solid var(--surface-container);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🚂 Estação Tremz - Documentação Oficial</h1>
+    <p>O guia completo do encurtador de links e hospedagem de imagens mais mineiro da web.</p>
+</header>
+
+<main>
+    <p style="text-align: center; font-size: 1.1rem; margin-bottom: 2rem;">
+        Bem-vindo à documentação do projeto. Aqui você encontra todos os detalhes técnicos sobre a estrutura do código, dependências, gerenciamento de estado e integrações futuras com o Backend.
+    </p>
+
+    <div class="card">
+        <div class="card-icon">📁</div>
+        <div class="card-content">
+            <h2>1. Arquitetura e Arquivos</h2>
+            <p>Entenda a estrutura de diretórios do projeto, e o propósito de cada arquivo TypeScript e Componente React.</p>
+            <a href="./1-arquitetura-e-arquivos.html" class="btn">Ler Documento</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-icon">📦</div>
+        <div class="card-content">
+            <h2>2. Dependências e Bibliotecas</h2>
+            <p>Conheça as bibliotecas utilizadas neste projeto (Vite, React, Tailwind, Lucide, Motion) e por que cada uma foi escolhida.</p>
+            <a href="./2-dependencias.html" class="btn">Ler Documento</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-icon">🎣</div>
+        <div class="card-content">
+            <h2>3. Variáveis de Estado e Hooks</h2>
+            <p>Como o projeto gerencia seu ciclo de vida. Aprenda sobre os estados principais e como o LocalStorage é utilizado para persistir dados.</p>
+            <a href="./3-variaveis-estado-e-hooks.html" class="btn">Ler Documento</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-icon">🔌</div>
+        <div class="card-content">
+            <h2>4. Integração com Backend (APIs)</h2>
+            <p>O guia passo a passo sobre onde o código atualmente usa dados "falsos" (mock) e como substituí-los por chamadas reais de API (Fetch/Axios).</p>
+            <a href="./4-integracao-backend.html" class="btn">Ler Documento</a>
+        </div>
+    </div>
+</main>
+
+<footer>
+    Feito com cuidado para ajudar no desenvolvimento contínuo da aplicação Tremz.
+</footer>
+
+</body>
+</html>

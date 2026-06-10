@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. Arquitetura e Arquivos - Tremz</title>
+    <style>
+        :root {
+            --primary: #5d4037;
+            --primary-container: #8b6b61;
+            --secondary: #904d1e;
+            --surface: #fdf8f5;
+            --surface-container: #f5ebe6;
+            --on-surface: #201a18;
+            --on-surface-variant: #53433f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-family: Georgia, serif;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--surface-container);
+        }
+
+        h2 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--surface-container);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        h3 {
+            color: var(--secondary);
+        }
+
+        h4 {
+            color: var(--primary-container);
+            margin-bottom: 0.5rem;
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-back {
+            display: inline-block;
+            background-color: var(--primary-container);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-back:hover {
+            background-color: var(--primary);
+        }
+
+        .alert {
+            background-color: #e8f5e9;
+            border-left: 4px solid #2e7d32;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📁 1. Arquitetura e Arquivos</h1>
+</header>
+
+<main>
+    <a href="./index.html" class="btn-back">⬅ Voltar ao Portal</a>
+
+    <p>Esta seção da documentação tem como objetivo desmistificar a estrutura de diretórios e o propósito de cada arquivo no nosso projeto Frontend, o Tremz! Aqui, a gente não deixa nenhum trem sem explicação.</p>
+
+    <h2>🗂️ Estrutura de Diretórios</h2>
+    <p>O projeto foi inicializado utilizando o <strong>Vite</strong> como empacotador (bundler) e a estrutura base é dividida nas seguintes pastas e arquivos principais na raiz:</p>
+    <ul>
+        <li><strong>package.json / package-lock.json:</strong> Arquivos que gerenciam as dependências e scripts do Node.js (detalharemos as dependências no documento 2).</li>
+        <li><strong>vite.config.ts:</strong> Configuração do bundler Vite, como as definições de compilação, plugins do React e TailwindCSS.</li>
+        <li><strong>tsconfig.json:</strong> Configurações de tipagem e compilação do TypeScript.</li>
+        <li><strong>index.html:</strong> O ponto de entrada principal do HTML no navegador.</li>
+        <li><strong>assets/</strong>: Arquivos estáticos (ícones, configurações do AI Studio, imagens brutas) que não passam pelo empacotador do Vite.</li>
+        <li><strong>src/</strong>: O "coração" do projeto! Tudo o que é código, componente e regra de negócio mora aqui dentro.</li>
+    </ul>
+
+    <h2>💻 Arquivos Principais dentro do <code>src/</code></h2>
+    <p>Aqui mora a lógica e as definições globais do nosso projeto.</p>
+    
+    <h3><code>main.tsx</code></h3>
+    <p>O ponto de montagem do React. Ele busca a div com id <code>root</code> no <code>index.html</code> e "injeta" a aplicação React (que é o arquivo <code>App.tsx</code>) lá dentro. É a ponte entre o HTML estático e o JavaScript dinâmico.</p>
+
+    <h3><code>App.tsx</code></h3>
+    <p>A locomotiva principal! É o componente raiz que gerencia os estados globais mais importantes:
+        <ul>
+            <li>Quais links o usuário criou.</li>
+            <li>Quais fotos o usuário subiu.</li>
+            <li>Quem é o usuário logado no momento (<code>currentUser</code>).</li>
+            <li>Qual é a página/tela atual sendo exibida (<code>currentView</code>).</li>
+        </ul>
+    </p>
+
+    <h3><code>index.css</code></h3>
+    <p>Nosso arquivo de estilos globais. Além das chamadas para o TailwindCSS (<code>@import "tailwindcss";</code>), ele contém algumas variáveis de cor customizadas (padrão Material Design 3) inseridas nas classes <code>:root</code>.</p>
+
+    <h3><code>types.ts</code></h3>
+    <p>Como usamos TypeScript para não deixar nenhum tipo de dado escapar dos trilhos, este arquivo centraliza todas as <strong>Interfaces</strong> e <strong>Types</strong> do sistema. Por exemplo, a estrutura do que é um <code>LinkItem</code> ou <code>PhotoItem</code> fica definida aqui para uso em todo o projeto.</p>
+
+    <h3><code>data.ts</code></h3>
+    <p>Arquivo de mock (dados falsos)! Ele carrega os links (<code>INITIAL_LINKS</code>) e fotos (<code>INITIAL_PHOTOS</code>) simulados para que o projeto tenha conteúdo visual sem precisar de um banco de dados real rodando no começo.</p>
+
+    <h2>🧩 Os Componentes em <code>src/components/</code></h2>
+    <p>Os componentes são os "vagões" que, quando encaixados, formam o trem todo da interface. A aplicação Tremz utiliza a arquitetura baseada em componentes do React. Abaixo a explicação do que cada um faz:</p>
+
+    <h4>Navegação e Base</h4>
+    <ul>
+        <li><strong><code>Header.tsx</code></strong>: A barra de navegação no topo (Header). Possui lógica para mudar visualmente de acordo com a tela atual (ex: botão de Sair da Estação).</li>
+        <li><strong><code>Footer.tsx</code></strong>: O rodapé bonitinho da aplicação com links falsos, direitos autorais e seções auxiliares.</li>
+    </ul>
+
+    <h4>Funcionalidades Principais (Home)</h4>
+    <ul>
+        <li><strong><code>LinkShortener.tsx</code></strong>: Componente onde fica o campo de texto grande para colar um link e o botão de encurtar. Ele apenas chama uma função enviando a URL que o usuário colou.</li>
+        <li><strong><code>PhotoUploader.tsx</code></strong>: A área onde o usuário pode fazer upload de uma imagem ou colar a URL de uma. Possui a lógica do formulário de upload.</li>
+        <li><strong><code>PublicGallery.tsx</code></strong>: A galeria tipo "mural" na página inicial que mostra as fotos públicas cadastradas por outras pessoas (ou mockadas pelo <code>data.ts</code>).</li>
+    </ul>
+
+    <h4>Painel do Usuário (Dashboard) e Telas Secundárias</h4>
+    <ul>
+        <li><strong><code>StatsPanel.tsx</code></strong>: Painel que exibe gráficos falsos e métricas resumidas (quantos cliques, navegadores, etc).</li>
+        <li><strong><code>SettingsPanel.tsx</code></strong>: O painel onde o usuário logado pode alterar o próprio nome, atualizar senha e trocar a foto de perfil.</li>
+        <li><strong><code>RedirectScreen.tsx</code></strong>: A tela animada que aparece com um "cronômetro" carregando antes de simular o redirecionamento quando você clica em um link curto.</li>
+    </ul>
+
+    <h4>Modais (Janelas Pop-up)</h4>
+    <ul>
+        <li><strong><code>PhotoDetail.tsx</code></strong> e <strong><code>PhotoDetailModal.tsx</code></strong>: A tela cheia (ou modal) que se abre quando o usuário clica em uma foto na galeria, mostrando a imagem grande, o autor e as tags.</li>
+        <li><strong><code>LinkStatsModal.tsx</code></strong>: A janelinha de estatísticas específicas que abre quando você quer inspecionar um link individualmente no seu painel.</li>
+    </ul>
+
+    <h4>Outros</h4>
+    <ul>
+        <li><strong><code>LoadingSpinner.tsx</code></strong>: Aquela pequena animação que gira indicando que algo está sendo carregado.</li>
+    </ul>
+
+    <div class="alert">
+        <strong>Dica:</strong> Todos os arquivos tentam seguir o princípio da responsabilidade única. O <code>App.tsx</code> guarda as variáveis e a memória, e apenas passa essas variáveis para os componentes desenharem a tela!
+    </div>
+</main>
+
+</body>
+</html>
