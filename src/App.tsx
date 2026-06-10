@@ -40,7 +40,10 @@ export default function App() {
 
   const [registeredUsers, setRegisteredUsers] = useState<any[]>(() => {
     const saved = localStorage.getItem('tremz_users');
-    const initial = [{ email: 'lucasbritocientista@gmail.com', name: 'Lucas Brito', password: '123' }];
+    const initial = [
+      { email: 'lucasbritocientista@gmail.com', name: 'Lucas Brito', password: '123' },
+      { email: 'admin@admin.com', name: 'Admin', password: 'admin123' }
+    ];
     if (!saved) {
       localStorage.setItem('tremz_users', JSON.stringify(initial));
       return initial;
