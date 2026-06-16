@@ -10,11 +10,16 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formErr, setFormErr] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErr('');
-    const result = handleLogin(email, password);
+    setLoading(true);
+
+    const result = await handleLogin(email, password);
+    setLoading(false);
+
     if (result.success) {
       navigate('/dashboard/links');
     } else {
@@ -69,10 +74,11 @@ export default function LoginPage() {
 
           <button
             type="submit"
+            disabled={loading}
             id="login-submit"
             className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs cursor-pointer text-sm"
           >
-            Entrar no Trilho
+            {loading ? 'Entrando...' : 'Entrar no Trilho'}
           </button>
         </form>
 
