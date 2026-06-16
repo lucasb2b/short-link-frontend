@@ -1,10 +1,19 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { jwtDecode } from 'jwt-decode';
+import { loginAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Interface para o playload decodificado do JWT
+interface JwtPayload {
+  sub: string; //email
+  iat: number;
+  exp: number;
+}
 
 export interface User {
   email: string;
@@ -47,7 +56,7 @@ export interface AppContextType {
   handleOpenPhotoModal: (photo: PhotoItem) => void;
   handleClosePhotoModal: () => void;
   // Actions - auth
-  handleLogin: (email: string, password: string) => { success: boolean; error?: string };
+  handleLogin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   handleSignup: (name: string, email: string, password: string) => { success: boolean; error?: string };
   handleLogout: () => void;
   handleUpdateProfile: (data: { name?: string; password?: string; avatarUrl?: string }) => void;
@@ -86,9 +95,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return saved ? JSON.parse(saved) : INITIAL_PHOTOS;
   });
 
+  // Estado do usuário atual
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('tremz_user');
-    return saved ? JSON.parse(saved) : null;
+    // Ao iniciar, tenta restaurar o usuário a partir do token salvo
+    const token = localStorage.getItem('tremz_token');
+    if (token) {
+      try {
+        const decoded = jwtDecode<JwtPayload>(token);
+        // Verifica se o token não está expirado (exp em segundos)
+        if (decoded.exp * 1000 > Date.now()) {
+          return { email: decoded.sub, name: '', avatarUrl: '' };
+        } else {
+          // Token expirado: remove
+          localStorage.removeItem('tremz_token');
+        }
+      } catch {
+        localStorage.removeItem('tremz_token');
+      }
+    }
+    return null;
   });
 
   const [registeredUsers, setRegisteredUsers] = useState<RegisteredUser[]>(() => {
@@ -128,9 +153,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (currentUser) {
-      localStorage.setItem('tremz_user', JSON.stringify(currentUser));
+      // Se você quiser persistir o nome/avatar, pode salvar separadamente,
+      // mas o token é a fonte da verdade para o login
     } else {
-      localStorage.removeItem('tremz_user');
+      localStorage.removeItem('tremz_token');
     }
   }, [currentUser]);
 
@@ -229,21 +255,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // ── Auth actions ───────────────────────────────────────────────────────────
   const handleLogin = useCallback(
-    (email: string, password: string): { success: boolean; error?: string } => {
+    async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
       if (!email || !password) {
         return { success: false, error: 'Preencha os campos obrigatórios primeiro!' };
       }
-      const matched = registeredUsers.find(
-        (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-      );
-      if (matched) {
-        setCurrentUser({ email: matched.email, name: matched.name, avatarUrl: matched.avatarUrl });
-        showToast(`Bem-vindo à estação, ${matched.name}!`);
+      try {
+        // 1. Chama a API e obtém o token
+        const token = await loginAPI(email, password);
+
+        // 2. Decodifica o token para pegar o e‑mail
+        const decoded = jwtDecode<JwtPayload>(token);
+
+        // 3. Salva o token no localStorage
+        localStorage.setItem('tremz_token', token);
+
+        // 4. Define o usuário atual (aqui você pode manter o nome vazio
+        //    ou buscar de uma rota /me depois)
+        setCurrentUser({
+          email: decoded.sub,
+          name: '', // futuramente pode vir de outro endpoint
+          avatarUrl: '',
+        });
+
+        showToast(`Bem-vindo à estação, ${decoded.sub}!`);
         return { success: true };
+      } catch (error: any) {
+        return { success: false, error: error.message || 'Erro ao fazer login.' };
       }
-      return { success: false, error: 'Eita! Usuário ou senha incorretos, confere de novo.' };
     },
-    [registeredUsers, showToast]
+    [showToast]
   );
 
   const handleSignup = useCallback(
@@ -267,6 +307,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleLogout = useCallback(() => {
+    localStorage.removeItem('tremz_token');
     setCurrentUser(null);
     showToast('Saiu da estação. Volte logo, sô!');
   }, [showToast]);
