@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { loginAPI } from '../services/api';
+import { loginAPI, registerAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 
@@ -11,6 +11,7 @@ import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 // Interface para o playload decodificado do JWT
 interface JwtPayload {
   sub: string; //email
+  name?: string;
   iat: number;
   exp: number;
 }
@@ -21,17 +22,12 @@ export interface User {
   avatarUrl?: string;
 }
 
-export interface RegisteredUser extends User {
-  password: string;
-}
-
 export interface AppContextType {
   // Data
   links: LinkItem[];
   photos: PhotoItem[];
   // Auth
   currentUser: User | null;
-  registeredUsers: RegisteredUser[];
   // UI state
   toastMessage: string | null;
   isCopiedId: string | null;
@@ -57,7 +53,7 @@ export interface AppContextType {
   handleClosePhotoModal: () => void;
   // Actions - auth
   handleLogin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  handleSignup: (name: string, email: string, password: string) => { success: boolean; error?: string };
+  handleSignup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   handleLogout: () => void;
   handleUpdateProfile: (data: { name?: string; password?: string; avatarUrl?: string }) => void;
   handleDeleteAccount: () => void;
@@ -104,7 +100,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const decoded = jwtDecode<JwtPayload>(token);
         // Verifica se o token não está expirado (exp em segundos)
         if (decoded.exp * 1000 > Date.now()) {
-          return { email: decoded.sub, name: '', avatarUrl: '' };
+          return { email: decoded.sub, name: decoded.name || decoded.sub.split('@')[0], avatarUrl: '' };
         } else {
           // Token expirado: remove
           localStorage.removeItem('tremz_token');
@@ -116,18 +112,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return null;
   });
 
-  const [registeredUsers, setRegisteredUsers] = useState<RegisteredUser[]>(() => {
-    const saved = localStorage.getItem('tremz_users');
-    const initial: RegisteredUser[] = [
-      { email: 'lucasbritocientista@gmail.com', name: 'Lucas Brito', password: '123' },
-      { email: 'admin@admin.com', name: 'Admin', password: 'admin123' },
-    ];
-    if (!saved) {
-      localStorage.setItem('tremz_users', JSON.stringify(initial));
-      return initial;
-    }
-    return JSON.parse(saved);
-  });
 
   // ── UI states ──────────────────────────────────────────────────────────────
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -273,7 +257,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         //    ou buscar de uma rota /me depois)
         setCurrentUser({
           email: decoded.sub,
-          name: '', // futuramente pode vir de outro endpoint
+          name: decoded.name || decoded.sub.split('@')[0],
           avatarUrl: '',
         });
 
@@ -287,23 +271,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const handleSignup = useCallback(
-    (name: string, email: string, password: string): { success: boolean; error?: string } => {
+    async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
       if (!name || !email || !password) {
         return { success: false, error: 'Preencha todos os campos do cadastro do trem!' };
       }
-      const exists = registeredUsers.some((u) => u.email.toLowerCase() === email.toLowerCase());
-      if (exists) {
-        return { success: false, error: 'Uai, esse e-mail já tá cadastrado aqui na estação.' };
+      try {
+        await registerAPI(name, email, password);
+        // Não logamos o usuário automaticamente, pois ele precisa verificar o e-mail.
+        showToast('Cadastro criado! Verifique seu e‑mail para ativar a conta.');
+        return { success: true };
+      } catch (error: any) {
+        return { success: false, error: error.message || 'Erro ao criar conta.' };
       }
-      const newUser: RegisteredUser = { name, email, password, avatarUrl: '' };
-      const updated = [...registeredUsers, newUser];
-      setRegisteredUsers(updated);
-      localStorage.setItem('tremz_users', JSON.stringify(updated));
-      setCurrentUser({ email, name, avatarUrl: '' });
-      showToast('Registrado com sucesso, sô!');
-      return { success: true };
     },
-    [registeredUsers, showToast]
+    [showToast]
   );
 
   const handleLogout = useCallback(() => {
@@ -313,48 +294,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [showToast]);
 
   const handleUpdateProfile = useCallback(
-    (updatedData: { name?: string; password?: string; avatarUrl?: string }) => {
-      if (!currentUser) return;
-      setRegisteredUsers((prev) => {
-        const users = [...prev];
-        const idx = users.findIndex((u) => u.email === currentUser.email);
-        if (idx > -1) {
-          if (updatedData.name) users[idx].name = updatedData.name;
-          if (updatedData.password) users[idx].password = updatedData.password;
-          if (updatedData.avatarUrl !== undefined) users[idx].avatarUrl = updatedData.avatarUrl;
-          localStorage.setItem('tremz_users', JSON.stringify(users));
-        }
-        return users;
-      });
-      setCurrentUser((prev) => {
-        if (!prev) return prev;
-        const next = { ...prev };
-        if (updatedData.name) next.name = updatedData.name;
-        if (updatedData.avatarUrl !== undefined) next.avatarUrl = updatedData.avatarUrl;
-        return next;
-      });
-      showToast('Configurações atualizadas, sô!');
+    (_data: { name?: string; password?: string; avatarUrl?: string }) => {
+      showToast('Edição de perfil será implementada em breve, sô!');
     },
-    [currentUser, showToast]
+    [showToast]
   );
 
   const handleDeleteAccount = useCallback(() => {
-    if (!currentUser) return;
-    setRegisteredUsers((prev) => {
-      const updated = prev.filter((u) => u.email !== currentUser.email);
-      localStorage.setItem('tremz_users', JSON.stringify(updated));
-      return updated;
-    });
-    setCurrentUser(null);
-    showToast('Sua conta foi excluída com sucesso. Sentiremos sua falta por aqui, sô!');
-  }, [currentUser, showToast]);
+    showToast('Funcionalidade em construção, sô!');
+  }, [showToast]);
 
   // ── Context value ──────────────────────────────────────────────────────────
   const value: AppContextType = {
     links,
     photos,
     currentUser,
-    registeredUsers,
     toastMessage,
     isCopiedId,
     selectedPhoto,

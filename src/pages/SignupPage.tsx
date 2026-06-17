@@ -11,13 +11,19 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formErr, setFormErr] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErr('');
-    const result = handleSignup(name, email, password);
+    setLoading(true);
+
+    const result = await handleSignup(name, email, password);
+    setLoading(false);
+
     if (result.success) {
-      navigate('/dashboard/links');
+      // Não navegamos direto para o dashboard, mas para o login com uma mensagem
+      navigate('/login', { state: { message: 'Conta criada! Verifique seu e‑mail.' } });
     } else {
       setFormErr(result.error ?? 'Erro ao criar conta.');
     }
@@ -82,10 +88,10 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            id="signup-submit"
-            className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs cursor-pointer text-sm"
+            disabled={loading}
+            className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs cursor-pointer text-sm disabled:opacity-50"
           >
-            Criar meu Passe de Trem
+            {loading ? 'Criando passe...' : 'Criar meu Passe de Trem'}
           </button>
         </form>
 
