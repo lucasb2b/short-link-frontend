@@ -45,3 +45,37 @@ export async function registerAPI(name: string, email: string, password: string)
 
   return;
 }
+
+export async function changePasswordAPI(currentPassword: string, newPassword: string): Promise<void> {
+  const token = localStorage.getItem('tremz_token');
+  const response = await fetch(`${BASE_URL}/v1/auth/change-password`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao alterar senha.';
+    throw new Error(message);
+  }
+}
+
+export async function deactivateAccountAPI(): Promise<void> {
+  const token = localStorage.getItem('tremz_token');
+  const response = await fetch(`${BASE_URL}/v1/auth/deactivate`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao desativar conta.';
+    throw new Error(message);
+  }
+}

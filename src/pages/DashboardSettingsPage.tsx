@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import SettingsPanel from '../components/SettingsPanel';
 
 export default function DashboardSettingsPage() {
-  const { currentUser, handleUpdateProfile, handleDeleteAccount, registeredUsers } = useApp();
+  const { currentUser, handleUpdateProfile, handleDeleteAccount } = useApp();
 
   if (!currentUser) return null;
 
@@ -12,7 +12,6 @@ export default function DashboardSettingsPage() {
       currentUser={currentUser}
       onUpdateProfile={handleUpdateProfile}
       onDeleteAccount={handleDeleteAccount}
-      registeredUsers={registeredUsers}
     />
   );
 }

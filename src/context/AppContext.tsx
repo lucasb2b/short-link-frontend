@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { loginAPI, registerAPI } from '../services/api';
+import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 
@@ -55,8 +55,8 @@ export interface AppContextType {
   handleLogin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   handleSignup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   handleLogout: () => void;
-  handleUpdateProfile: (data: { name?: string; password?: string; avatarUrl?: string }) => void;
-  handleDeleteAccount: () => void;
+  handleUpdateProfile: (data: { name?: string; password?: string; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
+  handleDeleteAccount: () => Promise<void>;
   // Toast
   showToast: (message: string) => void;
 }
@@ -294,14 +294,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [showToast]);
 
   const handleUpdateProfile = useCallback(
-    (_data: { name?: string; password?: string; avatarUrl?: string }) => {
-      showToast('Edição de perfil será implementada em breve, sô!');
+    async (_data: { name?: string; password?: string; avatarUrl?: string; currentPassword?: string; }) => {
+      if (!currentUser) return { success: false, error: 'Usuário não autenticado.' };
+      try {
+        // Se estiver trocando a senha, chama a API
+        if (_data.password && _data.currentPassword) {
+          await changePasswordAPI(_data.currentPassword, _data.password);
+        }
+        // Atualiza estado local com nome e avatar
+        setCurrentUser((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            name: _data.name !== undefined ? _data.name : prev.name,
+            avatarUrl: _data.avatarUrl !== undefined ? _data.avatarUrl : prev.avatarUrl,
+          };
+        });
+        showToast('Perfil atualizado com sucesso!');
+        return { success: true };
+      } catch (error: any) {
+        return { success: false, error: error.message || 'Erro ao atualizar perfil.' };
+      }
     },
-    [showToast]
+    [currentUser, showToast]
   );
 
-  const handleDeleteAccount = useCallback(() => {
-    showToast('Funcionalidade em construção, sô!');
+  const handleDeleteAccount = useCallback(async () => {
+    try {
+      await deactivateAccountAPI();
+      localStorage.removeItem('tremz_token');
+      setCurrentUser(null);
+      showToast('Sua conta foi desativada. Até mais, sô!');
+    } catch (error: any) {
+      showToast(error.message || 'Erro ao desativar conta.');
+    }
   }, [showToast]);
 
   // ── Context value ──────────────────────────────────────────────────────────
