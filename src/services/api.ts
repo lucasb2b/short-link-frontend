@@ -64,6 +64,24 @@ export async function changePasswordAPI(currentPassword: string, newPassword: st
   }
 }
 
+export async function updateProfileAPI(name: string): Promise<void> {
+  const token = localStorage.getItem('tremz_token');
+  const response = await fetch(`${BASE_URL}/v1/auth/profile`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao atualizar perfil.';
+    throw new Error(message);
+  }
+}
+
 export async function deactivateAccountAPI(): Promise<void> {
   const token = localStorage.getItem('tremz_token');
   const response = await fetch(`${BASE_URL}/v1/auth/deactivate`, {

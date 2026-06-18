@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI } from '../services/api';
+import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
+
+const USER_PROFILE_KEY = 'tremz_user_profile';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -93,16 +95,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Estado do usuário atual
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    // Ao iniciar, tenta restaurar o usuário a partir do token salvo
     const token = localStorage.getItem('tremz_token');
     if (token) {
       try {
         const decoded = jwtDecode<JwtPayload>(token);
-        // Verifica se o token não está expirado (exp em segundos)
         if (decoded.exp * 1000 > Date.now()) {
-          return { email: decoded.sub, name: decoded.name || decoded.sub.split('@')[0], avatarUrl: '' };
+          // Tenta carregar perfil salvo (nome/avatar)
+          const savedProfile = localStorage.getItem(USER_PROFILE_KEY);
+          const profile = savedProfile ? JSON.parse(savedProfile) : {};
+          return {
+            email: decoded.sub,
+            name: profile.name || decoded.name || '',   // prioridade: salvo > token > vazio
+            avatarUrl: profile.avatarUrl || '',
+          };
         } else {
-          // Token expirado: remove
           localStorage.removeItem('tremz_token');
         }
       } catch {
@@ -289,27 +295,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('tremz_token');
+    localStorage.removeItem(USER_PROFILE_KEY);
     setCurrentUser(null);
     showToast('Saiu da estação. Volte logo, sô!');
   }, [showToast]);
 
   const handleUpdateProfile = useCallback(
-    async (_data: { name?: string; password?: string; avatarUrl?: string; currentPassword?: string; }) => {
+    async (_data: { name?: string; password?: string; avatarUrl?: string; currentPassword?: string }) => {
       if (!currentUser) return { success: false, error: 'Usuário não autenticado.' };
       try {
-        // Se estiver trocando a senha, chama a API
+        // 1. Se tiver nome, chama a API para atualizar no banco
+        if (_data.name && _data.name !== currentUser.name) {
+          await updateProfileAPI(_data.name);
+        }
+
+        // 2. Se estiver trocando a senha, chama a API
         if (_data.password && _data.currentPassword) {
           await changePasswordAPI(_data.currentPassword, _data.password);
         }
-        // Atualiza estado local com nome e avatar
+
+        // 3. Atualiza o estado local (inclusive avatar, se houver)
         setCurrentUser((prev) => {
           if (!prev) return prev;
-          return {
+          const updated = {
             ...prev,
             name: _data.name !== undefined ? _data.name : prev.name,
             avatarUrl: _data.avatarUrl !== undefined ? _data.avatarUrl : prev.avatarUrl,
           };
+          // Atualiza o perfil salvo no localStorage
+          localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({
+            name: updated.name,
+            avatarUrl: updated.avatarUrl,
+          }));
+          return updated;
         });
+
         showToast('Perfil atualizado com sucesso!');
         return { success: true };
       } catch (error: any) {
