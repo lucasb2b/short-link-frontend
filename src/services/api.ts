@@ -97,3 +97,41 @@ export async function deactivateAccountAPI(): Promise<void> {
     throw new Error(message);
   }
 }
+
+// ─── Função para encurtar link (autenticada) ──────────────────────────
+export async function shortenLinkAPI(originalUrl: string): Promise<{
+  originalUrl: string;
+  shortUrl: string;
+  shortCode: string;
+}> {
+  const token = localStorage.getItem('tremz_token');
+  const response = await fetch(`${BASE_URL}/links`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ originalUrl }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao encurtar link.';
+    throw new Error(message);
+  }
+
+  return response.json(); // { originalUrl, shortUrl, shortCode }
+}
+
+// ─── Função para obter detalhes de um link público ────────────────────
+export async function getLinkInfoAPI(shortCode: string): Promise<{
+  originalUrl: string;
+  shortUrl: string;
+  shortCode: string;
+}> {
+  const response = await fetch(`${BASE_URL}/links/${shortCode}`);
+  if (!response.ok) {
+    throw new Error('Link não encontrado ou revogado.');
+  }
+  return response.json();
+}
