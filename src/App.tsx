@@ -41,12 +41,12 @@ export default function App() {
       const hashPhotoId = hash.startsWith('#photo-')
         ? hash.substring(7)
         : hash.startsWith('#foto-')
-        ? hash.substring(6)
-        : hash.startsWith('#photo')
-        ? hash.substring(6)
-        : hash.startsWith('#foto')
-        ? hash.substring(5)
-        : null;
+          ? hash.substring(6)
+          : hash.startsWith('#photo')
+            ? hash.substring(6)
+            : hash.startsWith('#foto')
+              ? hash.substring(5)
+              : null;
 
       const targetId = photoId || hashPhotoId;
       if (targetId) {
@@ -123,6 +123,8 @@ export default function App() {
                   <Route path="settings" element={<DashboardSettingsPage />} />
                 </Route>
               </Route>
+
+              <Route path=":shortCode" element={<RedirectPage />} />
 
               {/* Catch-all → home */}
               <Route path="*" element={<HomePage />} />
