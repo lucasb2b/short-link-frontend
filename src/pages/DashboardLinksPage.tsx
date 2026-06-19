@@ -112,13 +112,12 @@ export default function DashboardLinksPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleCopyText(`${window.location.origin}/${link.shortUrl.split('/')[1]}`, link.id);
+                            handleCopyText(link.shortUrl, link.id);
                           }}
-                          className={`p-1.5 rounded-lg border transition cursor-pointer ${
-                            isCopiedId === link.id
+                          className={`p-1.5 rounded-lg border transition cursor-pointer ${isCopiedId === link.id
                               ? 'bg-tertiary/10 text-tertiary border-tertiary-container'
                               : 'bg-surface-container-high/60 border-outline-variant/40 hover:bg-surface-container-high text-primary'
-                          }`}
+                            }`}
                           title="Copiar Link"
                         >
                           {isCopiedId === link.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -149,11 +148,10 @@ export default function DashboardLinksPage() {
                 <button
                   disabled={safeLinksPage === 1}
                   onClick={() => setLinksPage((p) => Math.max(1, p - 1))}
-                  className={`px-2.5 py-1.5 text-[10px] font-extrabold border rounded-lg transition-all cursor-pointer ${
-                    safeLinksPage === 1
+                  className={`px-2.5 py-1.5 text-[10px] font-extrabold border rounded-lg transition-all cursor-pointer ${safeLinksPage === 1
                       ? 'border-outline-variant/40 text-on-surface-variant/40 bg-surface-container/20 cursor-not-allowed'
                       : 'border-outline-variant hover:border-primary hover:bg-surface-container-high/60 text-primary bg-white'
-                  }`}
+                    }`}
                 >
                   Voltar Trem
                 </button>
@@ -161,11 +159,10 @@ export default function DashboardLinksPage() {
                   <button
                     key={i}
                     onClick={() => setLinksPage(i + 1)}
-                    className={`w-7 h-7 flex items-center justify-center text-[10px] font-extrabold rounded-lg transition-all cursor-pointer border ${
-                      safeLinksPage === i + 1
+                    className={`w-7 h-7 flex items-center justify-center text-[10px] font-extrabold rounded-lg transition-all cursor-pointer border ${safeLinksPage === i + 1
                         ? 'bg-primary border-primary text-surface font-black'
                         : 'border-outline-variant hover:bg-surface-container-high/60 text-primary bg-white'
-                    }`}
+                      }`}
                   >
                     {i + 1}
                   </button>
@@ -173,11 +170,10 @@ export default function DashboardLinksPage() {
                 <button
                   disabled={safeLinksPage === totalLinksPages}
                   onClick={() => setLinksPage((p) => Math.min(totalLinksPages, p + 1))}
-                  className={`px-2.5 py-1.5 text-[10px] font-extrabold border rounded-lg transition-all cursor-pointer ${
-                    safeLinksPage === totalLinksPages
+                  className={`px-2.5 py-1.5 text-[10px] font-extrabold border rounded-lg transition-all cursor-pointer ${safeLinksPage === totalLinksPages
                       ? 'border-outline-variant/40 text-on-surface-variant/40 bg-surface-container/20 cursor-not-allowed'
                       : 'border-outline-variant hover:border-primary hover:bg-surface-container-high/60 text-primary bg-white'
-                  }`}
+                    }`}
                 >
                   Tocar Diante
                 </button>

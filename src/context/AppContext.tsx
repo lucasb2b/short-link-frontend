@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI } from '../services/api';
+import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 
@@ -158,11 +158,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // ── Link actions ───────────────────────────────────────────────────────────
   const handleShortenLink = useCallback(async (originalUrl: string): Promise<LinkItem> => {
-    const randomPath = Math.random().toString(36).substring(2, 8);
+    const data = await shortenLinkAPI(originalUrl);
     const newLink: LinkItem = {
-      id: Date.now().toString(),
-      originalUrl,
-      shortUrl: `tremz.in/${randomPath}`,
+      id: data.shortCode,               // usamos o shortCode como ID (é único)
+      originalUrl: data.originalUrl,
+      shortUrl: data.shortUrl,          // já vem com o domínio correto
       clicks: 0,
       createdAt: new Date().toISOString(),
       trend: 'stable',

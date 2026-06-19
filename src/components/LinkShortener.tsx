@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Link2, ArrowRight, Copy, Check, Sparkles, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { LinkItem } from '../types';
+import { useApp } from '../context/AppContext';
 
 interface LinkShortenerProps {
   onShorten: (originalUrl: string) => Promise<LinkItem>;
 }
 
 export default function LinkShortener({ onShorten }: LinkShortenerProps) {
+  const { currentUser } = useApp();
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,6 +20,11 @@ export default function LinkShortener({ onShorten }: LinkShortenerProps) {
     e.preventDefault();
     setError('');
     setResult(null);
+
+    if (!currentUser) {
+      setError('Você precisa estar logado para encurtar links, sô! Faça o login na estação.');
+      return;
+    }
 
     if (!url.trim()) {
       setError('Uai, digite o link para encurtar primeiro!');
@@ -58,8 +65,7 @@ export default function LinkShortener({ onShorten }: LinkShortenerProps) {
 
   const copyToClipboard = () => {
     if (!result) return;
-    // We build the full URL based on the window origin
-    const fullShortUrl = `${window.location.origin}/${result.shortUrl.split('/')[1]}`;
+    const fullShortUrl = result.shortUrl;
     navigator.clipboard.writeText(fullShortUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 3050);
@@ -142,11 +148,10 @@ export default function LinkShortener({ onShorten }: LinkShortenerProps) {
                 </div>
                 <button
                   onClick={copyToClipboard}
-                  className={`px-5 py-3 rounded-xl font-bold text-sm cursor-pointer transition flex items-center justify-center space-x-2 ${
-                    copied
-                      ? 'bg-tertiary text-surface hover:bg-tertiary-container'
-                      : 'bg-secondary text-surface hover:bg-secondary-container'
-                  }`}
+                  className={`px-5 py-3 rounded-xl font-bold text-sm cursor-pointer transition flex items-center justify-center space-x-2 ${copied
+                    ? 'bg-tertiary text-surface hover:bg-tertiary-container'
+                    : 'bg-secondary text-surface hover:bg-secondary-container'
+                    }`}
                 >
                   {copied ? (
                     <>
