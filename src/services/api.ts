@@ -135,3 +135,41 @@ export async function getLinkInfoAPI(shortCode: string): Promise<{
   }
   return response.json();
 }
+
+export async function getUserLinksAPI(page: number = 0): Promise<{
+  content: Array<{
+    originalUrl: string;
+    shortUrl: string;
+    shortCode: string;
+  }>;
+  // outros campos da Page do Spring, se necessário
+}> {
+  const token = localStorage.getItem('tremz_token');
+  const response = await fetch(`${BASE_URL}/links?page=${page}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Erro ao carregar links.');
+  }
+
+  return response.json();
+}
+
+export async function revokeLinkAPI(shortCode: string): Promise<void> {
+  const token = localStorage.getItem('tremz_token');
+  const response = await fetch(`${BASE_URL}/links/${shortCode}/revoke`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao remover link.';
+    throw new Error(message);
+  }
+}

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI } from '../services/api';
+import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 
@@ -42,7 +42,7 @@ export interface AppContextType {
   selectedDashboardPhoto: PhotoItem | null;
   // Actions - links
   handleShortenLink: (originalUrl: string) => Promise<LinkItem>;
-  handleDeleteLink: (id: string) => void;
+  handleDeleteLink: (id: string) => Promise<void>;
   triggerRedirect: (link: LinkItem) => void;
   handleCopyText: (text: string, id: string) => void;
   handleOpenStatsModal: (link: LinkItem) => void;
@@ -83,10 +83,7 @@ export function useApp(): AppContextType {
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   // ── Persisted data states ──────────────────────────────────────────────────
-  const [links, setLinks] = useState<LinkItem[]>(() => {
-    const saved = localStorage.getItem('tremz_links');
-    return saved ? JSON.parse(saved) : INITIAL_LINKS;
-  });
+  const [links, setLinks] = useState<LinkItem[]>([]);
 
   const [photos, setPhotos] = useState<PhotoItem[]>(() => {
     const saved = localStorage.getItem('tremz_photos');
@@ -132,10 +129,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [selectedDashboardPhoto, setSelectedDashboardPhoto] = useState<PhotoItem | null>(null);
 
+  const fetchUserLinks = useCallback(async () => {
+    if (!currentUser) return;
+    try {
+      const data = await getUserLinksAPI(0); // página 0, tamanho 10
+      const mappedLinks: LinkItem[] = data.content.map((item: any) => ({
+        id: item.shortCode,
+        originalUrl: item.originalUrl,
+        shortUrl: item.shortUrl,
+        clicks: 0, // depois pode vir do backend
+        createdAt: new Date().toISOString(),
+        trend: 'stable' as const,
+      }));
+      setLinks(mappedLinks);
+    } catch (error) {
+      console.error('Erro ao buscar links do usuário', error);
+    }
+  }, [currentUser]);
+
   // ── localStorage sync ──────────────────────────────────────────────────────
-  useEffect(() => {
-    localStorage.setItem('tremz_links', JSON.stringify(links));
-  }, [links]);
 
   useEffect(() => {
     localStorage.setItem('tremz_photos', JSON.stringify(photos));
@@ -150,6 +162,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentUser]);
 
+  useEffect(() => {
+    if (currentUser) {
+      fetchUserLinks();
+    } else {
+      setLinks([]); // limpa ao deslogar
+    }
+  }, [currentUser, fetchUserLinks]);
+
+
   // ── Toast helper ───────────────────────────────────────────────────────────
   const showToast = useCallback((message: string) => {
     setToastMessage(message);
@@ -159,22 +180,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // ── Link actions ───────────────────────────────────────────────────────────
   const handleShortenLink = useCallback(async (originalUrl: string): Promise<LinkItem> => {
     const data = await shortenLinkAPI(originalUrl);
+    // Recarrega a lista do backend (já inclui o novo link)
+    await fetchUserLinks();
     const newLink: LinkItem = {
-      id: data.shortCode,               // usamos o shortCode como ID (é único)
+      id: data.shortCode,
       originalUrl: data.originalUrl,
-      shortUrl: data.shortUrl,          // já vem com o domínio correto
+      shortUrl: data.shortUrl,
       clicks: 0,
       createdAt: new Date().toISOString(),
       trend: 'stable',
     };
-    setLinks((prev) => [newLink, ...prev]);
     showToast('Trem encurtado com sucesso, uai!');
     return newLink;
-  }, [showToast]);
+  }, [fetchUserLinks, showToast]);
 
-  const handleDeleteLink = useCallback((id: string) => {
-    setLinks((prev) => prev.filter((l) => l.id !== id));
-    showToast('Link removido do painel!');
+  const handleDeleteLink = useCallback(async (shortCode: string) => {
+    try {
+      await revokeLinkAPI(shortCode);
+      // Remove da lista local imediatamente
+      setLinks((prev) => prev.filter((l) => l.id !== shortCode));
+      showToast('Link removido do trilho, sô!');
+    } catch (error: any) {
+      showToast(error.message || 'Erro ao remover link.');
+    }
   }, [showToast]);
 
   const triggerRedirect = useCallback((link: LinkItem) => {
@@ -242,6 +270,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsPhotoModalOpen(false);
     setSelectedDashboardPhoto(null);
   }, []);
+
 
   // ── Auth actions ───────────────────────────────────────────────────────────
   const handleLogin = useCallback(
