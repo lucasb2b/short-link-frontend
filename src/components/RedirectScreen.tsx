@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Train, ExternalLink, RefreshCw, MapPin } from 'lucide-react';
+import { Train, ExternalLink, MapPin } from 'lucide-react';
 import { motion } from 'motion/react';
 import { LinkItem } from '../types';
 
@@ -11,11 +11,15 @@ interface RedirectScreenProps {
 export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) {
   const [countdown, setCountdown] = useState(5);
 
+  // Puxa a URL da API do seu arquivo .env. 
+  // O fallback para localhost garante que não quebre se o .env sumir.
+  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
   useEffect(() => {
     if (countdown === 0) {
-      // Emulate redirecting by opening in new tab or updating state
-      window.open(link.originalUrl, '_blank', 'noopener,noreferrer');
-      onCancel(); // return home
+      // Navega para o backend usando a variável de ambiente
+      const cleanShortCode = link.shortUrl.split('/').pop();
+      window.location.href = `${API_URL}/${cleanShortCode}`;
       return;
     }
 
@@ -24,12 +28,11 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [countdown, link, onCancel]);
+  }, [countdown, link, API_URL]);
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center py-12 px-4 max-w-xl mx-auto text-center space-y-8">
-      
-      {/* Train station icon anim */}
+
       <div className="relative">
         <motion.div
           animate={{ scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
@@ -38,7 +41,6 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
         >
           <Train className="w-12 h-12" />
         </motion.div>
-        {/* Steam rings */}
         <motion.div
           initial={{ opacity: 0.5, y: 0, scale: 0.6 }}
           animate={{ opacity: 0, y: -40, scale: 1.4 }}
@@ -47,7 +49,6 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
         />
       </div>
 
-      {/* Countdown display */}
       <div className="space-y-3">
         <h2 className="font-serif font-black text-3xl text-primary">
           Embarcando no Trem!
@@ -60,7 +61,6 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
         </div>
       </div>
 
-      {/* Origin -> Destination flow visualcard */}
       <div className="bg-white p-5 rounded-2xl border border-outline-variant/60 w-full text-left space-y-4 shadow-xs">
         <div>
           <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block">Partida (Short)</span>
@@ -70,7 +70,7 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
         <div className="relative flex items-center justify-center my-1">
           <div className="absolute left-0 right-0 h-[1.5px] bg-dashed border-t border-outline-variant/60" />
           <span className="relative z-10 px-3 bg-white text-[10px] font-bold text-secondary font-sans uppercase">
-            Trajeto Direto
+            Trajeto Via Catraca
           </span>
         </div>
 
@@ -80,7 +80,6 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
         </div>
       </div>
 
-      {/* Action buttons */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
         <button
           onClick={onCancel}
@@ -88,11 +87,10 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
         >
           Voltar pra Estação
         </button>
+
+        {/* Botão de pulo usando o .env */}
         <a
-          href={link.originalUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={onCancel}
+          href={`${API_URL}/${link.shortUrl.split('/').pop()}`}
           className="flex-1 px-5 py-3 bg-primary text-surface font-bold rounded-xl text-xs sm:text-sm hover:bg-primary-container transition shadow-sm cursor-pointer flex items-center justify-center space-x-1.5"
         >
           <span>Pular Catraca (Ir Agora)</span>

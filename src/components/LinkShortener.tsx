@@ -144,7 +144,7 @@ export default function LinkShortener({ onShorten }: LinkShortenerProps) {
               </h4>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="flex-1 px-4 py-3 bg-surface rounded-xl border border-outline-variant flex items-center justify-between font-mono text-sm overflow-hidden text-ellipsis whitespace-nowrap select-all text-primary font-semibold">
-                  <span className="truncate">{`${window.location.origin}/${result.shortUrl.split('/')[1]}`}</span>
+                  <span className="truncate">{result.shortUrl}</span>
                 </div>
                 <button
                   onClick={copyToClipboard}
