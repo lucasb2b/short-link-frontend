@@ -40,3 +40,10 @@ export interface CountryStat {
 // ViewType is no longer needed — navigation is handled by React Router paths.
 // Routes: / | /login | /signup | /redirecting | /dashboard/links | /dashboard/photos | /dashboard/stats | /dashboard/settings
 
+export interface AnalyticsResponseDTO {
+  totalClicks: number;
+  browsers: Record<string, number>;
+  operatingSystems: Record<string, number>;
+  deviceTypes: Record<string, number>;
+  countries: Record<string, number>;
+}

@@ -1,6 +1,12 @@
 // src/services/api.ts
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+let BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${host}:8080`;
+
+// Workaround: If .env forces localhost but we are accessing via IP (smartphone), force the IP.
+if (BASE_URL.includes('localhost') && host !== 'localhost') {
+  BASE_URL = `http://${host}:8080`;
+}
 
 // ─── Função de login ───────────────────────────────────────────────────────
 export async function loginAPI(email: string, password: string) {
@@ -172,4 +178,21 @@ export async function revokeLinkAPI(shortCode: string): Promise<void> {
     const message = errorData?.message || errorData?.error || 'Erro ao remover link.';
     throw new Error(message);
   }
+}
+
+export async function getLinkAnalyticsAPI(shortCode: string): Promise<any> {
+  const token = localStorage.getItem('tremz_token');
+  const response = await fetch(`${BASE_URL}/links/${shortCode}/analytics`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao carregar métricas.';
+    throw new Error(message);
+  }
+
+  return response.json();
 }
