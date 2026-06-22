@@ -11,9 +11,12 @@ interface RedirectScreenProps {
 export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) {
   const [countdown, setCountdown] = useState(5);
 
-  // Puxa a URL da API do seu arquivo .env. 
-  // O fallback para localhost garante que não quebre se o .env sumir.
-  const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  let API_URL = import.meta.env.VITE_API_BASE_URL || `http://${host}:8080`;
+  if (API_URL.includes('localhost') && host !== 'localhost') {
+    API_URL = `http://${host}:8080`;
+  }
+
 
   useEffect(() => {
     if (countdown === 0) {
