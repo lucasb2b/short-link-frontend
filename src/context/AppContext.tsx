@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI } from '../services/api';
+import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI, getLinkAnalyticsAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 
@@ -133,14 +133,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!currentUser) return;
     try {
       const data = await getUserLinksAPI(0); // página 0, tamanho 10
-      const mappedLinks: LinkItem[] = data.content.map((item: any) => ({
-        id: item.shortCode,
-        originalUrl: item.originalUrl,
-        shortUrl: item.shortUrl,
-        clicks: 0, // depois pode vir do backend
-        createdAt: new Date().toISOString(),
-        trend: 'stable' as const,
-      }));
+      
+      // Mapeia os links e busca os cliques reais do mesmo endpoint do modal para garantir o número exato
+      const mappedLinks: LinkItem[] = await Promise.all(
+        data.content.map(async (item: any) => {
+          let realClicks = item.clicks || 0;
+          
+          try {
+            // Busca o analytics para ter 100% de certeza do número real
+            const analytics = await getLinkAnalyticsAPI(item.shortCode);
+            realClicks = analytics.totalClicks || 0;
+          } catch (err) {
+            console.error(`Erro ao buscar analytics do link ${item.shortCode}`);
+          }
+
+          return {
+            id: item.shortCode,
+            originalUrl: item.originalUrl,
+            shortUrl: item.shortUrl,
+            clicks: realClicks,
+            createdAt: item.createdAt || new Date().toISOString(),
+            trend: 'stable' as const,
+          };
+        })
+      );
+      
       setLinks(mappedLinks);
     } catch (error) {
       console.error('Erro ao buscar links do usuário', error);
