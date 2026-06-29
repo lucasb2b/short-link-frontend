@@ -52,6 +52,18 @@ export async function registerAPI(name: string, email: string, password: string)
   return;
 }
 
+export async function verifyEmailAPI(token: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/v1/auth/verify-email?token=${token}`, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Link inválido ou expirado.';
+    throw new Error(message);
+  }
+}
+
 export async function changePasswordAPI(currentPassword: string, newPassword: string): Promise<void> {
   const token = localStorage.getItem('tremz_token');
   const response = await fetch(`${BASE_URL}/v1/auth/change-password`, {
