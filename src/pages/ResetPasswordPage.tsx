@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { resetPasswordAPI } from '../services/api';
+import PasswordStrengthMeter from '../components/PasswordStrengthMeter';
+import { evaluatePasswordStrength } from '../utils/password';
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -29,9 +31,10 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (newPassword.length < 6) {
+    const strength = evaluatePasswordStrength(newPassword);
+    if (strength.score < 2 || newPassword.length < 8) {
       setStatus('error');
-      setMessage('A senha deve ter no mínimo 6 caracteres.');
+      setMessage('Sua senha é muito fraca ou curta. Por favor, crie uma senha mais forte (mínimo 8 caracteres, mesclando letras e números/símbolos).');
       return;
     }
 
@@ -90,9 +93,10 @@ export default function ResetPasswordPage() {
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Mínimo de 6 caracteres"
+                placeholder="Escolha uma senha forte"
                 className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface text-sm focus:outline-hidden focus:ring-1 focus:ring-primary text-primary"
               />
+              {newPassword && <PasswordStrengthMeter password={newPassword} />}
             </div>
 
             <div className="space-y-1">
@@ -110,7 +114,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={status === 'loading' || !token}
-              className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs cursor-pointer text-sm disabled:opacity-50"
+              className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs cursor-pointer text-sm disabled:opacity-50 mt-2"
             >
               {status === 'loading' ? 'Salvando...' : 'Salvar Nova Senha'}
             </button>

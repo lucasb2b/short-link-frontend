@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { User, Camera, Lock, Eye, EyeOff, Save, Trash2, Key, ShieldAlert, AlertTriangle, Sparkles } from 'lucide-react';
+import PasswordStrengthMeter from './PasswordStrengthMeter';
+import { evaluatePasswordStrength } from '../utils/password';
 
 interface SettingsPanelProps {
   currentUser: { email: string; name: string; avatarUrl?: string };
@@ -97,6 +99,12 @@ export default function SettingsPanel({
     }
     if (newPassword !== confirmPassword) {
       setSecurityErr('As senhas novas não estão batendo! Confirme direitinho.');
+      return;
+    }
+
+    const strength = evaluatePasswordStrength(newPassword);
+    if (strength.score < 2 || newPassword.length < 8) {
+      setSecurityErr('Sua nova senha é muito fraca ou curta. Use no mínimo 8 caracteres mesclando letras e números.');
       return;
     }
 
@@ -326,6 +334,7 @@ export default function SettingsPanel({
                   {showNewPassword ? <Eye className="w-4.5 h-4.5" /> : <EyeOff className="w-4.5 h-4.5" />}
                 </button>
               </div>
+              {newPassword && <PasswordStrengthMeter password={newPassword} />}
 
               {/* Confirm Password Field */}
               <label className="block text-xs font-extrabold text-on-surface-variant mb-1.5" htmlFor="confirm-password">
