@@ -64,6 +64,34 @@ export async function verifyEmailAPI(token: string): Promise<void> {
   }
 }
 
+export async function forgotPasswordAPI(email: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/v1/auth/forgot-password?email=${encodeURIComponent(email)}`, {
+    method: 'POST',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao solicitar redefinição de senha.';
+    throw new Error(message);
+  }
+}
+
+export async function resetPasswordAPI(token: string, newPassword: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/v1/auth/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token, newPassword }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao redefinir a senha.';
+    throw new Error(message);
+  }
+}
+
 export async function changePasswordAPI(currentPassword: string, newPassword: string): Promise<void> {
   const token = localStorage.getItem('tremz_token');
   const response = await fetch(`${BASE_URL}/v1/auth/change-password`, {
