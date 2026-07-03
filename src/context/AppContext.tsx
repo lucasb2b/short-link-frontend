@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI, getLinkAnalyticsAPI, uploadImageAPI } from '../services/api';
+import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI, getLinkAnalyticsAPI, uploadImageAPI, getUserImagesAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 
@@ -110,11 +110,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return null;
   });
 
-  const [photos, setPhotos] = useState<PhotoItem[]>(() => {
-    const key = currentUser ? `tremz_photos_${currentUser.email}` : 'tremz_photos_guest';
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : INITIAL_PHOTOS;
-  });
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
 
 
   // ── UI states ──────────────────────────────────────────────────────────────
@@ -165,19 +161,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentUser]);
 
-  // Handle switching users - reload photos
-  useEffect(() => {
-    const key = currentUser ? `tremz_photos_${currentUser.email}` : 'tremz_photos_guest';
-    const saved = localStorage.getItem(key);
-    setPhotos(saved ? JSON.parse(saved) : INITIAL_PHOTOS);
+  const fetchUserImages = useCallback(async () => {
+    if (!currentUser) {
+      setPhotos([]);
+      return;
+    }
+    try {
+      const data = await getUserImagesAPI(0); // page 0
+      
+      const mappedPhotos: PhotoItem[] = data.content.map((item: any) => ({
+        id: `photo-${item.shortCode}`,
+        imageUrl: item.storageUrl.startsWith('http') ? item.storageUrl : `${window.location.origin}/uploads/${item.storageUrl}`,
+        fileName: item.originalFilename,
+        size: item.size ? `${(item.size / (1024 * 1024)).toFixed(2)} MB` : 'Desconhecido',
+        isPrivate: false, // You might need to map this based on logic if available, defaulting to false for dashboard
+        author: currentUser.name || currentUser.email,
+        tags: item.tags || [],
+        createdAt: item.createdAt || new Date().toISOString()
+      }));
+
+      setPhotos(mappedPhotos);
+    } catch (error) {
+      console.error('Erro ao buscar imagens do usuário', error);
+    }
   }, [currentUser]);
 
-  // ── localStorage sync ──────────────────────────────────────────────────────
-
+  // Handle switching users - reload photos from backend
   useEffect(() => {
-    const key = currentUser ? `tremz_photos_${currentUser.email}` : 'tremz_photos_guest';
-    localStorage.setItem(key, JSON.stringify(photos));
-  }, [photos, currentUser]);
+    fetchUserImages();
+  }, [fetchUserImages]);
+
+  // ── localStorage sync (Only for tokens now) ────────────────────────────────
 
   useEffect(() => {
     if (currentUser) {

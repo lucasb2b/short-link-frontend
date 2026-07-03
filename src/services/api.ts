@@ -281,3 +281,30 @@ export async function getImageDetailsAPI(shortCode: string): Promise<any> {
 
   return response.json();
 }
+
+export async function getUserImagesAPI(page: number = 0): Promise<{
+  content: Array<{
+    originalFilename: string;
+    shortCode: string;
+    shortUrl: string;
+    storageUrl: string;
+    tags: string[];
+    expiresAt: string | null;
+    isAnonymous: boolean;
+    createdAt?: string;
+    size?: number;
+  }>;
+}> {
+  const token = localStorage.getItem('tremz_token');
+  const response = await fetch(`${BASE_URL}/v1/images?page=${page}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Erro ao carregar imagens.');
+  }
+
+  return response.json();
+}
