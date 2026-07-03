@@ -39,13 +39,11 @@ export default function App() {
 
   // Clear selected photo on navigation away from home or photo query
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    if (!searchParams.has('photo') && !searchParams.has('foto') && location.hash.indexOf('photo') === -1 && location.hash.indexOf('foto') === -1) {
-      if (selectedPhoto) {
-        handleSelectPhoto(null);
-      }
+    if (selectedPhoto) {
+      handleSelectPhoto(null);
     }
-  }, [location.pathname, location.search, location.hash, selectedPhoto, handleSelectPhoto]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   // Handle direct photo links via URL query params or hash
   useEffect(() => {
