@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -35,6 +35,17 @@ export default function App() {
     handleSelectPhoto,
     photos,
   } = useApp();
+  const location = useLocation();
+
+  // Clear selected photo on navigation away from home or photo query
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (!searchParams.has('photo') && !searchParams.has('foto') && location.hash.indexOf('photo') === -1 && location.hash.indexOf('foto') === -1) {
+      if (selectedPhoto) {
+        handleSelectPhoto(null);
+      }
+    }
+  }, [location.pathname, location.search, location.hash, selectedPhoto, handleSelectPhoto]);
 
   // Handle direct photo links via URL query params or hash
   useEffect(() => {
