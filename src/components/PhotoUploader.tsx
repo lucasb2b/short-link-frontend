@@ -4,23 +4,19 @@ import { motion, AnimatePresence } from 'motion/react';
 import { PhotoItem } from '../types';
 
 interface PhotoUploaderProps {
-  onUpload: (photo: Omit<PhotoItem, 'id' | 'createdAt'>) => Promise<PhotoItem>;
+  onUpload: (file: File, tags: string[], isPrivate: boolean) => Promise<PhotoItem>;
   isLoggedIn?: boolean;
-  defaultAuthor?: string;
 }
 
-export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAuthor = '' }: PhotoUploaderProps) {
+export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
-  const [author, setAuthor] = useState(defaultAuthor || 'Mineiro Anônimo');
-  const [tagsString, setTagsString] = useState('uai, minas');
+  const [tagsString, setTagsString] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   
   // Upload status states
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [uploadStep, setUploadStep] = useState('');
   const [uploadedPhoto, setUploadedPhoto] = useState<PhotoItem | null>(null);
   const [copied, setCopied] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
@@ -40,6 +36,10 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
   const processFile = (selectedFile: File) => {
     if (!selectedFile.type.startsWith('image/')) {
       alert('Uai, selecione somente arquivos de imagem, por favor!');
+      return;
+    }
+    if (selectedFile.size > 2 * 1024 * 1024) {
+      alert('A imagem deve ter no máximo 2MB, sô!');
       return;
     }
     setFile(selectedFile);
@@ -74,50 +74,26 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
     fileInputRef.current?.click();
   };
 
-  const performMockUpload = async (e: React.FormEvent) => {
+  const performUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !previewUrl) return;
+    if (!file) return;
 
     setUploading(true);
-    setProgress(0);
     setUploadedPhoto(null);
 
-    const steps = [
-      { p: 15, msg: 'Passando o café quentinho...' },
-      { p: 40, msg: 'Assando os pães de queijo...' },
-      { p: 70, msg: 'Engatando o vagão da Maria Fumaça...' },
-      { p: 95, msg: 'Hospedando seu trem na nuvem...' },
-      { p: 100, msg: 'Tudo pronto, uai!' }
-    ];
-
-    for (const step of steps) {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setProgress(step.p);
-      setUploadStep(step.msg);
-    }
-
-    // Finalize image creation
-    const calculatedSize = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
     const finalTags = tagsString
       .split(',')
       .map((t) => t.trim().toLowerCase())
       .filter((t) => t.length > 0);
 
     try {
-      const newPhoto = await onUpload({
-        fileName: file.name,
-        imageUrl: previewUrl, // Storing base64 for local database simulation persistence!
-        size: calculatedSize,
-        tags: finalTags,
-        author: author.trim() || 'Mineiro Secreto',
-        isPrivate: isPrivate
-      });
-
+      const newPhoto = await onUpload(file, finalTags, isPrivate);
       setUploadedPhoto(newPhoto);
       setFile(null);
       setPreviewUrl('');
+      setTagsString('');
     } catch (err) {
-      alert('Ih, capotou o trem na hora de salvar! Tente de novo.');
+      // O erro já será lidado pelo catch do AppContext que exibe um Toast.
     } finally {
       setUploading(false);
     }
@@ -132,7 +108,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
 
   const copyShareUrl = () => {
     if (!uploadedPhoto) return;
-    const shareUrl = `${window.location.origin}/?photo=${uploadedPhoto.id.replace('photo-', '')}`;
+    const shareUrl = `${window.location.origin}/i/${uploadedPhoto.id.replace('photo-', '')}`;
     navigator.clipboard.writeText(shareUrl);
     setCopiedShare(true);
     setTimeout(() => setCopiedShare(false), 3000);
@@ -178,14 +154,14 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept="image/*"
+                accept="image/jpeg, image/png, image/gif, image/webp"
                 onChange={handleChange}
               />
               <UploadCloud className="w-12 h-12 text-primary/80 mb-3 animate-bounce" />
               <p className="font-bold text-sm text-primary">Arraste seu arquivo de foto aqui</p>
               <p className="text-xs text-on-surface-variant mt-1">Ou clique para procurar nas pastas do seu computador</p>
               <span className="text-[10px] text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-md mt-4 border border-outline-variant/40 font-mono">
-                PNG, JPG, WEBP, GIF (Até 10MB)
+                PNG, JPG, WEBP, GIF (Até 2MB)
               </span>
             </motion.div>
           )}
@@ -196,7 +172,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              onSubmit={performMockUpload}
+              onSubmit={performUpload}
               className="space-y-4"
             >
               {/* Preview and form fields side-by-side on desktop */}
@@ -212,20 +188,6 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
                 </div>
 
                 <div className="md:col-span-7 space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-primary mb-1 flex items-center gap-1.5 pb-1">
-                      <User className="w-3.5 h-3.5 text-secondary" />
-                      Nome do Fotógrafo (Autor)
-                    </label>
-                    <input
-                      type="text"
-                      value={author}
-                      onChange={(e) => setAuthor(e.target.value)}
-                      placeholder="Quem tirou esse retrato lindo?"
-                      className="w-full px-3 py-2 rounded-lg bg-white border border-outline-variant text-sm focus:ring-1 focus:ring-primary focus:border-primary text-primary font-medium"
-                    />
-                  </div>
-
                   <div>
                     <label className="block text-xs font-bold text-primary mb-1 flex items-center gap-1.5 pb-1">
                       <Tag className="w-3.5 h-3.5 text-secondary" />
@@ -280,7 +242,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
 
                   {!isLoggedIn && (
                     <div className="p-2.5 bg-surface-container-low rounded-xl border border-outline-variant/50 text-[11px] text-on-surface-variant leading-relaxed">
-                      💡 Sô, se você <span className="font-bold">entrar na sua conta</span>, suas fotos ficam guardadas no seu painel pessoal de forma privativa e segura!
+                      💡 Sô, se você <span className="font-bold">entrar na sua conta</span>, suas fotos não expiram em 30 dias e ficam guardadas no seu painel pessoal! Suas fotos subirão como "Usuário Não Identificado".
                     </div>
                   )}
                 </div>
@@ -318,18 +280,8 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
             >
               <div className="relative inline-flex items-center justify-center">
                 <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                <span className="absolute text-xs font-mono font-bold text-primary">{progress}%</span>
               </div>
-              <div className="max-w-xs mx-auto">
-                <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden border border-outline-variant/40">
-                  <motion.div
-                    className="h-full bg-primary"
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </div>
-              </div>
-              <p className="text-sm font-serif italic text-primary animate-pulse">{uploadStep}</p>
+              <p className="text-sm font-serif italic text-primary animate-pulse">Hospedando seu trem na nuvem...</p>
             </motion.div>
           )}
 
@@ -373,7 +325,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
                     <p className="text-[10px] text-on-surface-variant font-mono mt-0.5">Espaço ocupado: {uploadedPhoto.size}</p>
                   </div>
 
-                  {/* 1. Share link to Photo Page (Works for Private, hides on search) */}
+                  {/* 1. Share link to Photo Page */}
                   <div className="space-y-1">
                     <label className="block text-[10px] font-extrabold text-primary uppercase tracking-wide">
                       🔗 Link de Compartilhamento (Página do Retrato)
@@ -382,7 +334,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
                       <input
                         type="text"
                         readOnly
-                        value={`${window.location.origin}/?photo=${uploadedPhoto.id.replace('photo-', '')}`}
+                        value={`${window.location.origin}/i/${uploadedPhoto.id.replace('photo-', '')}`}
                         className="flex-1 px-3 py-1.5 rounded-lg border border-outline-variant font-mono text-xs select-all bg-surface-container-low text-primary font-bold truncate"
                       />
                       <button
@@ -411,7 +363,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false, defaultAut
                   {/* 2. Direct embedded image URL */}
                   <div className="space-y-1">
                     <label className="block text-[10px] font-extrabold text-on-surface-variant uppercase tracking-wide">
-                      🖼️ Link Direto do Arquivo (Para tags de código HTML)
+                      🖼️ Link Direto do Arquivo (Para tags HTML)
                     </label>
                     <div className="flex items-center gap-1.5">
                       <input

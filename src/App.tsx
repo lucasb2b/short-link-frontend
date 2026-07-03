@@ -23,6 +23,7 @@ import DashboardLinksPage from './pages/DashboardLinksPage';
 import DashboardPhotosPage from './pages/DashboardPhotosPage';
 import DashboardStatsPage from './pages/DashboardStatsPage';
 import DashboardSettingsPage from './pages/DashboardSettingsPage';
+import ImageViewPage from './pages/ImageViewPage';
 
 // Photo detail (used as overlay inside home)
 import PhotoDetail from './components/PhotoDetail';
@@ -118,6 +119,9 @@ export default function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/redirecting" element={<RedirectPage />} />
+              
+              {/* Image View Page */}
+              <Route path="/i/:shortCode" element={<ImageViewPage />} />
 
               {/* Protected dashboard routes */}
               <Route element={<ProtectedRoute />}>

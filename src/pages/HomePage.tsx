@@ -7,7 +7,7 @@ import PhotoUploader from '../components/PhotoUploader';
 import PublicGallery from '../components/PublicGallery';
 
 export default function HomePage() {
-  const { handleShortenLink, handleUploadPhoto, photos, handleSelectPhoto } = useApp();
+  const { handleShortenLink, handleUploadPhoto, photos, handleSelectPhoto, currentUser } = useApp();
   const [activeTab, setActiveTab] = useState<'link' | 'photo'>('link');
 
   return (
@@ -76,7 +76,7 @@ export default function HomePage() {
           {activeTab === 'link' ? (
             <LinkShortener onShorten={handleShortenLink} />
           ) : (
-            <PhotoUploader onUpload={handleUploadPhoto} />
+            <PhotoUploader onUpload={handleUploadPhoto} isLoggedIn={!!currentUser} />
           )}
         </div>
       </div>

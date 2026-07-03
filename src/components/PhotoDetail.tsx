@@ -132,11 +132,11 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
                   <input
                     type="text"
                     readOnly
-                    value={`${window.location.origin}/?photo=${photo.id.replace('photo-', '')}`}
+                    value={`${window.location.origin}/i/${photo.id.replace('photo-', '')}`}
                     className="flex-1 px-3 py-2 bg-surface rounded-xl border border-primary/40 text-[11px] font-mono select-all truncate text-primary font-bold"
                   />
                   <button
-                    onClick={() => handleCopy(`${window.location.origin}/?photo=${photo.id.replace('photo-', '')}`, setCopiedShare)}
+                    onClick={() => handleCopy(`${window.location.origin}/i/${photo.id.replace('photo-', '')}`, setCopiedShare)}
                     className="p-2 bg-primary hover:bg-primary-container border border-outline-variant/60 rounded-xl transition text-white cursor-pointer active:scale-95 shrink-0"
                     title="Copiar Link de Compartilhamento"
                   >

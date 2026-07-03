@@ -236,3 +236,48 @@ export async function getLinkAnalyticsAPI(shortCode: string): Promise<any> {
 
   return response.json();
 }
+
+// ─── Funcionalidades de Imagem ───────────────────────────────────────────
+
+export async function uploadImageAPI(file: File, tags: string[] = []): Promise<any> {
+  const token = localStorage.getItem('tremz_token');
+  
+  const formData = new FormData();
+  formData.append('file', file);
+  if (tags.length > 0) {
+    // A API Spring espera List<String> tags. Geralmente pode-se passar o valor com vírgula 
+    // ou múltiplas keys de 'tags'. Vamos testar a lista em csv.
+    formData.append('tags', tags.join(','));
+  }
+
+  const headers: any = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${BASE_URL}/v1/images`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao enviar imagem.';
+    throw new Error(message);
+  }
+
+  return response.json();
+}
+
+export async function getImageDetailsAPI(shortCode: string): Promise<any> {
+  const response = await fetch(`${BASE_URL}/v1/images/${shortCode}`);
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Imagem não encontrada ou expirou.';
+    throw new Error(message);
+  }
+
+  return response.json();
+}

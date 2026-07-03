@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI, getLinkAnalyticsAPI } from '../services/api';
+import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI, getLinkAnalyticsAPI, uploadImageAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 
@@ -48,7 +48,7 @@ export interface AppContextType {
   handleOpenStatsModal: (link: LinkItem) => void;
   handleCloseStatsModal: () => void;
   // Actions - photos
-  handleUploadPhoto: (photoData: Omit<PhotoItem, 'id' | 'createdAt'>) => Promise<PhotoItem>;
+  handleUploadPhoto: (file: File, tags: string[], isPrivate: boolean) => Promise<PhotoItem>;
   handleDeletePhoto: (id: string) => void;
   handleSelectPhoto: (photo: PhotoItem | null) => void;
   handleOpenPhotoModal: (photo: PhotoItem) => void;
@@ -247,17 +247,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // ── Photo actions ──────────────────────────────────────────────────────────
   const handleUploadPhoto = useCallback(async (
-    photoData: Omit<PhotoItem, 'id' | 'createdAt'>
+    file: File,
+    tags: string[],
+    isPrivate: boolean
   ): Promise<PhotoItem> => {
-    const newPhoto: PhotoItem = {
-      ...photoData,
-      id: `photo-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
-    setPhotos((prev) => [newPhoto, ...prev]);
-    showToast('Sua foto foi hospedada!');
-    return newPhoto;
-  }, [showToast]);
+    try {
+      const data = await uploadImageAPI(file, tags);
+      
+      const newPhoto: PhotoItem = {
+        id: `photo-${data.shortCode}`,
+        fileName: data.originalFilename,
+        imageUrl: data.storageUrl, // Renderable URL
+        size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+        tags: data.tags || [],
+        author: data.isAnonymous ? 'Usuário Não Identificado' : (currentUser?.name || 'Autor Desconhecido'),
+        isPrivate: isPrivate,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Update local state if it's meant to be stored in the gallery
+      setPhotos((prev) => [newPhoto, ...prev]);
+      showToast('Sua foto foi hospedada!');
+      
+      return newPhoto;
+    } catch (error: any) {
+      showToast(error.message || 'Erro ao hospedar foto.');
+      throw error;
+    }
+  }, [currentUser, showToast]);
 
   const handleDeletePhoto = useCallback((id: string) => {
     setPhotos((prev) => prev.filter((p) => p.id !== id));
