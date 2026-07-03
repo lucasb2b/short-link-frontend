@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import LinkShortener from '../components/LinkShortener';
 import PhotoUploader from '../components/PhotoUploader';
 import PublicGallery from '../components/PublicGallery';
+import { INITIAL_PHOTOS } from '../data';
 
 export default function HomePage() {
   const { handleShortenLink, handleUploadPhoto, photos, handleSelectPhoto, currentUser } = useApp();
@@ -84,7 +85,7 @@ export default function HomePage() {
       {/* PUBLIC GALLERY */}
       <div className="pt-8 border-t border-surface-container-high">
         <PublicGallery
-          photos={photos}
+          photos={INITIAL_PHOTOS}
           onSelectPhoto={(photo) => {
             handleSelectPhoto(photo);
             window.scrollTo({ top: 0, behavior: 'smooth' });

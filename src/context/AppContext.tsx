@@ -85,11 +85,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // ── Persisted data states ──────────────────────────────────────────────────
   const [links, setLinks] = useState<LinkItem[]>([]);
 
-  const [photos, setPhotos] = useState<PhotoItem[]>(() => {
-    const saved = localStorage.getItem('tremz_photos');
-    return saved ? JSON.parse(saved) : INITIAL_PHOTOS;
-  });
-
   // Estado do usuário atual
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const token = localStorage.getItem('tremz_token');
@@ -113,6 +108,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     }
     return null;
+  });
+
+  const [photos, setPhotos] = useState<PhotoItem[]>(() => {
+    const key = currentUser ? `tremz_photos_${currentUser.email}` : 'tremz_photos_guest';
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : INITIAL_PHOTOS;
   });
 
 
@@ -164,11 +165,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentUser]);
 
+  // Handle switching users - reload photos
+  useEffect(() => {
+    const key = currentUser ? `tremz_photos_${currentUser.email}` : 'tremz_photos_guest';
+    const saved = localStorage.getItem(key);
+    setPhotos(saved ? JSON.parse(saved) : INITIAL_PHOTOS);
+  }, [currentUser]);
+
   // ── localStorage sync ──────────────────────────────────────────────────────
 
   useEffect(() => {
-    localStorage.setItem('tremz_photos', JSON.stringify(photos));
-  }, [photos]);
+    const key = currentUser ? `tremz_photos_${currentUser.email}` : 'tremz_photos_guest';
+    localStorage.setItem(key, JSON.stringify(photos));
+  }, [photos, currentUser]);
 
   useEffect(() => {
     if (currentUser) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Download, Tag, User, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import { Download, Tag, User, Clock, AlertTriangle, Loader2, HardDrive } from 'lucide-react';
 import { getImageDetailsAPI } from '../services/api';
 
 interface ImageDetails {
@@ -12,6 +12,8 @@ interface ImageDetails {
   tags: string[];
   expiresAt: string | null;
   isAnonymous: boolean;
+  createdAt?: string;
+  size?: number;
 }
 
 export default function ImageViewPage() {
@@ -65,7 +67,10 @@ export default function ImageViewPage() {
     );
   }
 
-  const { storageUrl, originalFilename, isAnonymous, tags, expiresAt } = imageDetails;
+  const { storageUrl, originalFilename, isAnonymous, tags, expiresAt, createdAt, size } = imageDetails;
+
+  const formattedSize = size ? `${(size / (1024 * 1024)).toFixed(2)} MB` : null;
+  const formattedDate = createdAt ? new Date(createdAt).toLocaleDateString('pt-BR') : null;
 
   return (
     <motion.div
@@ -90,11 +95,30 @@ export default function ImageViewPage() {
             <h1 className="font-serif font-black text-xl text-primary break-words">
               {originalFilename}
             </h1>
-            <div className="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant/30">
-              <User className="w-4 h-4 text-secondary" />
-              <span className="font-bold">
-                {isAnonymous ? 'Enviado por: Usuário Não Identificado' : 'Usuário Autenticado da Plataforma'}
-              </span>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant/30 w-fit">
+                <User className="w-4 h-4 text-secondary" />
+                <span className="font-bold">
+                  {isAnonymous ? 'Enviado por: Usuário Não Identificado' : 'Usuário Autenticado da Plataforma'}
+                </span>
+              </div>
+              
+              {(formattedDate || formattedSize) && (
+                <div className="flex items-center gap-4 text-[11px] font-mono font-bold text-on-surface-variant">
+                  {formattedDate && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-primary" />
+                      Upload: {formattedDate}
+                    </span>
+                  )}
+                  {formattedSize && (
+                    <span className="flex items-center gap-1">
+                      <HardDrive className="w-3 h-3 text-primary" />
+                      Tamanho: {formattedSize}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

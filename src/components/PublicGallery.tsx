@@ -56,33 +56,6 @@ export default function PublicGallery({ photos, onSelectPhoto }: PublicGalleryPr
         </div>
       </div>
 
-      {/* Tags Filter Buttons */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <span className="text-xs font-bold text-primary italic uppercase tracking-wider">Categorias:</span>
-        <button
-          onClick={() => setSelectedTag(null)}
-          className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-            selectedTag === null
-              ? 'bg-primary text-surface'
-              : 'bg-surface-container-high/60 text-primary hover:bg-surface-container-high'
-          }`}
-        >
-          Tudo
-        </button>
-        {uniqueTags.map((tag) => (
-          <button
-            key={tag}
-            onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
-            className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center space-x-1 ${
-              tag === selectedTag
-                ? 'bg-secondary text-surface'
-                : 'bg-surface-container-high/60 text-primary hover:bg-surface-container-high'
-            }`}
-          >
-            <span>#{tag}</span>
-          </button>
-        ))}
-      </div>
 
       {/* Photos Grid listing */}
       {filteredPhotos.length === 0 ? (
@@ -143,18 +116,7 @@ export default function PublicGallery({ photos, onSelectPhoto }: PublicGalleryPr
                     </div>
                   </div>
 
-                  {/* Tags list */}
-                  <div className="flex flex-wrap gap-1">
-                    {photo.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        onClick={() => setSelectedTag(tag)}
-                        className="text-[9px] font-mono font-bold bg-surface-container-high text-primary px-1.5 py-0.5 rounded-md border border-outline-variant/30 cursor-pointer hover:bg-secondary hover:text-white transition-colors"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
+
                 </div>
               </motion.div>
             ))}

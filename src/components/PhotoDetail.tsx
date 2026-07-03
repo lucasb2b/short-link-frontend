@@ -144,66 +144,6 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
                   </button>
                 </div>
               </div>
-
-              {/* Direct image url */}
-              <div className="space-y-1">
-                <label className="block text-[10px] font-bold text-on-surface-variant uppercase">Link Direto da Foto (Ideal para baixar)</label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    readOnly
-                    value={photo.imageUrl}
-                    className="flex-1 px-3 py-2 bg-surface rounded-xl border border-outline-variant text-[11px] font-mono select-all truncate text-primary font-semibold"
-                  />
-                  <button
-                    onClick={() => handleCopy(photo.imageUrl, setCopiedLink)}
-                    className="p-2 bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/60 rounded-xl transition text-primary cursor-pointer active:scale-95 shrink-0"
-                    title="Copiar Link"
-                  >
-                    {copiedLink ? <Check className="w-4 h-4 text-tertiary" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Image markup to copy in html links */}
-              <div className="space-y-1">
-                <label className="block text-[10px] font-bold text-on-surface-variant uppercase">Incorporar no HTML (&lt;img /&gt;)</label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    readOnly
-                    value={htmlCode}
-                    className="flex-1 px-3 py-2 bg-surface rounded-xl border border-outline-variant text-[11px] font-mono select-all truncate text-primary font-semibold"
-                  />
-                  <button
-                    onClick={() => handleCopy(htmlCode, setCopiedHtml)}
-                    className="p-2 bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/60 rounded-xl transition text-primary cursor-pointer active:scale-95 shrink-0"
-                    title="Copiar HTML"
-                  >
-                    {copiedHtml ? <Check className="w-4 h-4 text-tertiary" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Markdown code links */}
-              <div className="space-y-1">
-                <label className="block text-[10px] font-bold text-on-surface-variant uppercase">Código em Markdown</label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    readOnly
-                    value={markdownCode}
-                    className="flex-1 px-3 py-2 bg-surface rounded-xl border border-outline-variant text-[11px] font-mono select-all truncate text-primary font-semibold"
-                  />
-                  <button
-                    onClick={() => handleCopy(markdownCode, setCopiedMd)}
-                    className="p-2 bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/60 rounded-xl transition text-primary cursor-pointer active:scale-95 shrink-0"
-                    title="Copiar Markdown"
-                  >
-                    {copiedMd ? <Check className="w-4 h-4 text-tertiary" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
 
