@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, Image as ImageIcon, Check, Copy, Tag, User, ShieldAlert, Sparkles, Loader2, Globe, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PhotoItem } from '../types';
@@ -13,7 +13,11 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [tagsString, setTagsString] = useState('');
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(!isLoggedIn);
+
+  useEffect(() => {
+    setIsPrivate(!isLoggedIn);
+  }, [isLoggedIn]);
   
   // Upload status states
   const [uploading, setUploading] = useState(false);
@@ -202,43 +206,56 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-primary mb-1.5 flex items-center gap-1.5">
-                      <Lock className="w-3.5 h-3.5 text-secondary" />
-                      Privacidade do Retrato
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsPrivate(false)}
-                        className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                          !isPrivate
-                            ? 'bg-secondary/10 border-secondary text-secondary shadow-xs'
-                            : 'bg-white hover:bg-surface-container-low/40 border-outline-variant text-on-surface-variant hover:text-primary'
-                        }`}
-                      >
-                        <Globe className="w-3.5 h-3.5" />
-                        <span>Público</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsPrivate(true)}
-                        className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                          isPrivate
-                            ? 'bg-primary/10 border-primary text-primary shadow-xs'
-                            : 'bg-white hover:bg-surface-container-low/40 border-outline-variant text-on-surface-variant hover:text-primary'
-                        }`}
-                      >
-                        <Lock className="w-3.5 h-3.5" />
-                        <span>Privado</span>
-                      </button>
+                  {isLoggedIn ? (
+                    <div>
+                      <label className="block text-xs font-bold text-primary mb-1.5 flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-secondary" />
+                        Privacidade do Retrato
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsPrivate(false)}
+                          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                            !isPrivate
+                              ? 'bg-secondary/10 border-secondary text-secondary shadow-xs'
+                              : 'bg-white hover:bg-surface-container-low/40 border-outline-variant text-on-surface-variant hover:text-primary'
+                          }`}
+                        >
+                          <Globe className="w-3.5 h-3.5" />
+                          <span>Público</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsPrivate(true)}
+                          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                            isPrivate
+                              ? 'bg-primary/10 border-primary text-primary shadow-xs'
+                              : 'bg-white hover:bg-surface-container-low/40 border-outline-variant text-on-surface-variant hover:text-primary'
+                          }`}
+                        >
+                          <Lock className="w-3.5 h-3.5" />
+                          <span>Privado</span>
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-on-surface-variant mt-1.5 font-semibold">
+                        {!isPrivate 
+                          ? '🌍 Qualquer pessoa poderá ver esta foto na Galeria Pública!' 
+                          : '🔒 Apenas você verá essa foto no seu painel privado.'}
+                      </p>
                     </div>
-                    <p className="text-[10px] text-on-surface-variant mt-1.5 font-semibold">
-                      {!isPrivate 
-                        ? '🌍 Qualquer pessoa poderá ver esta foto na Galeria Pública!' 
-                        : '🔒 Apenas você verá essa foto no seu painel privado.'}
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="p-3 bg-surface/50 rounded-xl border border-outline-variant/60 space-y-1">
+                      <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-secondary" />
+                        Privacidade do Retrato
+                      </span>
+                      <p className="text-xs font-bold text-primary flex items-center gap-1">🔒 Privado por padrão</p>
+                      <p className="text-[10px] text-on-surface-variant leading-relaxed">
+                        Como usuário não identificado, esta foto será enviada como privada. Somente quem possuir o link de compartilhamento poderá visualizá-la.
+                      </p>
+                    </div>
+                  )}
 
                   {!isLoggedIn && (
                     <div className="p-2.5 bg-surface-container-low rounded-xl border border-outline-variant/50 text-[11px] text-on-surface-variant leading-relaxed">
