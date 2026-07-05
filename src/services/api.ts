@@ -3,64 +3,98 @@
 const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
 let BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${host}:8080`;
 
-// Workaround: If .env forces localhost but we are accessing via IP (smartphone), force the IP.
 if (BASE_URL.includes('localhost') && host !== 'localhost') {
   BASE_URL = `http://${host}:8080`;
 }
 
-// ─── Função de login ───────────────────────────────────────────────────────
+export class SessionExpiredError extends Error {
+  constructor(message: string = 'Sessão expirada') {
+    super(message);
+    this.name = 'SessionExpiredError';
+  }
+}
+
+async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+  let token = localStorage.getItem('tremz_token');
+  const headers = new Headers(options.headers || {});
+  
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  let response = await fetch(url, { ...options, headers });
+
+  if (response.status === 401) {
+    const refreshToken = localStorage.getItem('tremz_refreshToken');
+    if (!refreshToken) {
+      window.dispatchEvent(new Event('sessionExpired'));
+      throw new SessionExpiredError();
+    }
+
+    try {
+      const refreshRes = await fetch(`${BASE_URL}/v1/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!refreshRes.ok) {
+        throw new Error('Refresh failed');
+      }
+
+      const data = await refreshRes.json();
+      token = data.token;
+      localStorage.setItem('tremz_token', data.token);
+      if (data.refreshToken) {
+        localStorage.setItem('tremz_refreshToken', data.refreshToken);
+      }
+
+      headers.set('Authorization', `Bearer ${token}`);
+      response = await fetch(url, { ...options, headers });
+    } catch (e) {
+      localStorage.removeItem('tremz_token');
+      localStorage.removeItem('tremz_refreshToken');
+      window.dispatchEvent(new Event('sessionExpired'));
+      throw new SessionExpiredError();
+    }
+  }
+
+  return response;
+}
+
 export async function loginAPI(email: string, password: string) {
   const response = await fetch(`${BASE_URL}/v1/auth/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
 
   if (!response.ok) {
-    // Tenta extrair a mensagem de erro do corpo, se houver
     const errorData = await response.json().catch(() => null);
-    const message =
-      errorData?.message || errorData?.error || 'Credenciais inválidas';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Credenciais inválidas');
   }
 
-  // Exemplo de resposta: { token: "eyJ..." }
-  const data = await response.json();
-  return data.token as string;
+  return response.json(); // { token, refreshToken }
 }
 
-// Função para cadastrar um usuário
 export async function registerAPI(name: string, email: string, password: string) {
   const response = await fetch(`${BASE_URL}/v1/auth/register`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, email, password }),
   });
 
   if (!response.ok) {
-    // Tenta extrair a mensagem de erro do corpo, se houver
     const errorData = await response.json().catch(() => null);
-    const message =
-      errorData?.message || errorData?.error || 'Credenciais inválidas';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Credenciais inválidas');
   }
-
-  return;
 }
 
 export async function verifyEmailAPI(token: string): Promise<void> {
-  const response = await fetch(`${BASE_URL}/v1/auth/verify-email?token=${token}`, {
-    method: 'GET',
-  });
-
+  const response = await fetch(`${BASE_URL}/v1/auth/verify-email?token=${token}`);
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Link inválido ou expirado.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Link inválido ou expirado.');
   }
 }
 
@@ -68,113 +102,72 @@ export async function forgotPasswordAPI(email: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/v1/auth/forgot-password?email=${encodeURIComponent(email)}`, {
     method: 'POST',
   });
-
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao solicitar redefinição de senha.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao solicitar redefinição.');
   }
 }
 
 export async function resetPasswordAPI(token: string, newPassword: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/v1/auth/reset-password`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token, newPassword }),
   });
-
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao redefinir a senha.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao redefinir a senha.');
   }
 }
 
 export async function changePasswordAPI(currentPassword: string, newPassword: string): Promise<void> {
-  const token = localStorage.getItem('tremz_token');
-  const response = await fetch(`${BASE_URL}/v1/auth/change-password`, {
+  const response = await fetchWithAuth(`${BASE_URL}/v1/auth/change-password`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ currentPassword, newPassword }),
   });
-
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao alterar senha.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao alterar senha.');
   }
 }
 
 export async function updateProfileAPI(name: string): Promise<void> {
-  const token = localStorage.getItem('tremz_token');
-  const response = await fetch(`${BASE_URL}/v1/auth/profile`, {
+  const response = await fetchWithAuth(`${BASE_URL}/v1/auth/profile`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
   });
-
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao atualizar perfil.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao atualizar perfil.');
   }
 }
 
 export async function deactivateAccountAPI(): Promise<void> {
-  const token = localStorage.getItem('tremz_token');
-  const response = await fetch(`${BASE_URL}/v1/auth/deactivate`, {
+  const response = await fetchWithAuth(`${BASE_URL}/v1/auth/deactivate`, {
     method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
-
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao desativar conta.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao desativar conta.');
   }
 }
 
-// ─── Função para encurtar link (autenticada) ──────────────────────────
-export async function shortenLinkAPI(originalUrl: string): Promise<{
-  originalUrl: string;
-  shortUrl: string;
-  shortCode: string;
-}> {
-  const token = localStorage.getItem('tremz_token');
-  const response = await fetch(`${BASE_URL}/links`, {
+export async function shortenLinkAPI(originalUrl: string): Promise<any> {
+  const response = await fetchWithAuth(`${BASE_URL}/links`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ originalUrl }),
   });
-
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao encurtar link.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao encurtar link.');
   }
-
-  return response.json(); // { originalUrl, shortUrl, shortCode }
+  return response.json();
 }
 
-// ─── Função para obter detalhes de um link público ────────────────────
-export async function getLinkInfoAPI(shortCode: string): Promise<{
-  originalUrl: string;
-  shortUrl: string;
-  shortCode: string;
-}> {
+export async function getLinkInfoAPI(shortCode: string): Promise<any> {
   const response = await fetch(`${BASE_URL}/links/${shortCode}`);
   if (!response.ok) {
     throw new Error('Link não encontrado ou revogado.');
@@ -182,164 +175,82 @@ export async function getLinkInfoAPI(shortCode: string): Promise<{
   return response.json();
 }
 
-export async function getUserLinksAPI(page: number = 0): Promise<{
-  content: Array<{
-    originalUrl: string;
-    shortUrl: string;
-    shortCode: string;
-  }>;
-  // outros campos da Page do Spring, se necessário
-}> {
-  const token = localStorage.getItem('tremz_token');
-  const response = await fetch(`${BASE_URL}/links?page=${page}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
+export async function getUserLinksAPI(page: number = 0): Promise<any> {
+  const response = await fetchWithAuth(`${BASE_URL}/links?page=${page}`);
   if (!response.ok) {
     throw new Error('Erro ao carregar links.');
   }
-
   return response.json();
 }
 
 export async function revokeLinkAPI(shortCode: string): Promise<void> {
-  const token = localStorage.getItem('tremz_token');
-  const response = await fetch(`${BASE_URL}/links/${shortCode}/revoke`, {
+  const response = await fetchWithAuth(`${BASE_URL}/links/${shortCode}/revoke`, {
     method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
-
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao remover link.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao remover link.');
   }
 }
 
 export async function getLinkAnalyticsAPI(shortCode: string): Promise<any> {
-  const token = localStorage.getItem('tremz_token');
-  const response = await fetch(`${BASE_URL}/links/${shortCode}/analytics`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
+  const response = await fetchWithAuth(`${BASE_URL}/links/${shortCode}/analytics`);
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao carregar métricas.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao carregar métricas.');
   }
-
   return response.json();
 }
 
-// ─── Funcionalidades de Imagem ───────────────────────────────────────────
-
 export async function uploadImageAPI(file: File, tags: string[] = []): Promise<any> {
-  const token = localStorage.getItem('tremz_token');
-  
   const formData = new FormData();
   formData.append('file', file);
   if (tags.length > 0) {
-    // A API Spring espera List<String> tags. Geralmente pode-se passar o valor com vírgula 
-    // ou múltiplas keys de 'tags'. Vamos testar a lista em csv.
     formData.append('tags', tags.join(','));
   }
-
-  const headers: any = {};
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${BASE_URL}/v1/images`, {
+  const response = await fetchWithAuth(`${BASE_URL}/v1/images`, {
     method: 'POST',
-    headers,
     body: formData,
   });
-
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao enviar imagem.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao enviar imagem.');
   }
-
   return response.json();
 }
 
 export async function getImageDetailsAPI(shortCode: string): Promise<any> {
   const response = await fetch(`${BASE_URL}/v1/images/${shortCode}`);
-  
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Imagem não encontrada ou expirou.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Imagem não encontrada ou expirou.');
   }
-
   return response.json();
 }
 
-export async function getUserImagesAPI(page: number = 0): Promise<{
-  content: Array<{
-    originalFilename: string;
-    shortCode: string;
-    shortUrl: string;
-    storageUrl: string;
-    tags: string[];
-    expiresAt: string | null;
-    isAnonymous: boolean;
-    createdAt?: string;
-    size?: number;
-  }>;
-}> {
-  const token = localStorage.getItem('tremz_token');
-  const response = await fetch(`${BASE_URL}/v1/images?page=${page}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
+export async function getUserImagesAPI(page: number = 0): Promise<any> {
+  const response = await fetchWithAuth(`${BASE_URL}/v1/images?page=${page}`);
   if (!response.ok) {
     throw new Error('Erro ao carregar imagens.');
   }
-
   return response.json();
 }
 
 export async function deleteImageAPI(shortCode: string): Promise<void> {
-  const token = localStorage.getItem('tremz_token');
-  const response = await fetch(`${BASE_URL}/v1/images/${shortCode}`, {
+  const response = await fetchWithAuth(`${BASE_URL}/v1/images/${shortCode}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
-
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao deletar imagem.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao deletar imagem.');
   }
 }
 
-// ─── Estatísticas Globais ────────────────────────────────────────────────
-
 export async function getUserStatsAPI(): Promise<any> {
-  const token = localStorage.getItem('tremz_token');
-  const response = await fetch(`${BASE_URL}/v1/stats/overview`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
+  const response = await fetchWithAuth(`${BASE_URL}/v1/stats/overview`);
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || errorData?.error || 'Erro ao carregar estatísticas globais.';
-    throw new Error(message);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao carregar estatísticas.');
   }
-
   return response.json();
 }

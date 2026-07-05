@@ -102,9 +102,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           };
         } else {
           localStorage.removeItem('tremz_token');
+          localStorage.removeItem('tremz_refreshToken');
         }
       } catch {
         localStorage.removeItem('tremz_token');
+        localStorage.removeItem('tremz_refreshToken');
       }
     }
     return null;
@@ -196,6 +198,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setLinks([]); // limpa ao deslogar
     }
   }, [currentUser, fetchUserLinks]);
+
+  // Listener para evento de sessão expirada
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      localStorage.removeItem('tremz_token');
+      localStorage.removeItem('tremz_refreshToken');
+      localStorage.removeItem(USER_PROFILE_KEY);
+      setCurrentUser(null);
+      showToast('Sessão expirada. Por favor, faça login novamente.');
+    };
+    window.addEventListener('sessionExpired', handleSessionExpired);
+    return () => window.removeEventListener('sessionExpired', handleSessionExpired);
+  }, []);
 
 
   // ── Toast helper ───────────────────────────────────────────────────────────
@@ -357,13 +372,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
       try {
         // 1. Chama a API e obtém o token
-        const token = await loginAPI(email, password);
+        const data = await loginAPI(email, password);
+        const token = data.token;
+        const refreshToken = data.refreshToken;
 
         // 2. Decodifica o token para pegar o e‑mail
         const decoded = jwtDecode<JwtPayload>(token);
 
-        // 3. Salva o token no localStorage
+        // 3. Salva os tokens no localStorage
         localStorage.setItem('tremz_token', token);
+        if (refreshToken) {
+          localStorage.setItem('tremz_refreshToken', refreshToken);
+        }
 
         // 4. Define o usuário atual (aqui você pode manter o nome vazio
         //    ou buscar de uma rota /me depois)
@@ -401,6 +421,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('tremz_token');
+    localStorage.removeItem('tremz_refreshToken');
     localStorage.removeItem(USER_PROFILE_KEY);
     setCurrentUser(null);
     showToast('Saiu da estação. Volte logo, sô!');
