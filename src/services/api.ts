@@ -221,7 +221,7 @@ export async function uploadImageAPI(file: File, tags: string[] = [], isPrivate:
 }
 
 export async function getImageDetailsAPI(shortCode: string): Promise<any> {
-  const response = await fetch(`${BASE_URL}/v1/images/${shortCode}`);
+  const response = await fetchWithAuth(`${BASE_URL}/v1/images/${shortCode}`);
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
     throw new Error(errorData?.message || errorData?.error || 'Imagem não encontrada ou expirou.');

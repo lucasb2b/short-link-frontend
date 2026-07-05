@@ -80,7 +80,7 @@ export default function DashboardPhotosPage() {
                       {photo.fileName}
                     </h4>
                     <p className="text-[10px] text-on-surface-variant p-1 bg-surface-container rounded-sm font-mono mt-1 font-bold truncate">
-                      {photo.imageUrl.startsWith('data:') ? 'Memória Local Simulado' : photo.imageUrl}
+                      {photo.imageUrl.startsWith('data:') ? 'Memória Local Simulado' : `${window.location.origin}/i/${photo.id.replace('photo-', '')}`}
                     </p>
                   </div>
 
@@ -115,7 +115,7 @@ export default function DashboardPhotosPage() {
                     </button>
                     <div className="flex gap-1">
                       <button
-                        onClick={() => handleCopyText(photo.imageUrl, photo.id)}
+                        onClick={() => handleCopyText(`${window.location.origin}/i/${photo.id.replace('photo-', '')}`, photo.id)}
                         className={`p-1.5 rounded-lg border transition ${
                           isCopiedId === photo.id
                             ? 'bg-tertiary/10 text-tertiary border-tertiary-container'
