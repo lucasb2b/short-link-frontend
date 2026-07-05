@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Copy, Check, Trash2 } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function DashboardPhotosPage() {
-  const { photos, isCopiedId, handleDeletePhoto, handleOpenPhotoModal, handleCopyText } = useApp();
+  const { photos, isCopiedId, handleDeletePhoto, handleOpenPhotoModal, handleCopyText, handleTogglePhotoVisibility } = useApp();
   const navigate = useNavigate();
 
   const [photosPage, setPhotosPage] = useState(1);
+  const [togglingIds, setTogglingIds] = useState<string[]>([]);
   const photosPerPage = 10;
   const totalPhotosPages = Math.ceil(photos.length / photosPerPage) || 1;
   const safePhotosPage = Math.min(Math.max(1, photosPage), totalPhotosPages);
@@ -84,12 +85,33 @@ export default function DashboardPhotosPage() {
                   </div>
 
                   <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-surface-container">
+                    {/* Toggle de visibilidade */}
                     <button
-                      onClick={() => handleOpenPhotoModal(photo)}
-                      className="text-[10px] font-extrabold text-primary hover:text-secondary hover:underline cursor-pointer flex items-center gap-0.5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTogglingIds((prev) => [...prev, photo.id]);
+                        handleTogglePhotoVisibility(photo.id).finally(() =>
+                          setTogglingIds((prev) => prev.filter((id) => id !== photo.id))
+                        );
+                      }}
+                      disabled={togglingIds.includes(photo.id)}
+                      className={`flex items-center gap-1 text-[10px] font-extrabold px-2 py-1 rounded-lg border transition cursor-pointer ${
+                        togglingIds.includes(photo.id)
+                          ? 'opacity-50 cursor-wait'
+                          : photo.isPrivate
+                            ? 'text-error border-error/30 bg-error/5 hover:bg-error/10'
+                            : 'text-tertiary border-tertiary/30 bg-tertiary/5 hover:bg-tertiary/10'
+                      }`}
+                      title={photo.isPrivate ? 'Clique para tornar público' : 'Clique para tornar privado'}
                     >
-                      <span>Abrir Links HTML</span>
-                      <span>🔍</span>
+                      {togglingIds.includes(photo.id) ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : photo.isPrivate ? (
+                        <EyeOff className="w-3 h-3" />
+                      ) : (
+                        <Eye className="w-3 h-3" />
+                      )}
+                      <span>{photo.isPrivate ? 'Privado' : 'Público'}</span>
                     </button>
                     <div className="flex gap-1">
                       <button

@@ -202,12 +202,13 @@ export async function getLinkAnalyticsAPI(shortCode: string): Promise<any> {
   return response.json();
 }
 
-export async function uploadImageAPI(file: File, tags: string[] = []): Promise<any> {
+export async function uploadImageAPI(file: File, tags: string[] = [], isPrivate: boolean = false): Promise<any> {
   const formData = new FormData();
   formData.append('file', file);
   if (tags.length > 0) {
     formData.append('tags', tags.join(','));
   }
+  formData.append('isPrivate', String(isPrivate));
   const response = await fetchWithAuth(`${BASE_URL}/v1/images`, {
     method: 'POST',
     body: formData,
@@ -244,6 +245,17 @@ export async function deleteImageAPI(shortCode: string): Promise<void> {
     const errorData = await response.json().catch(() => null);
     throw new Error(errorData?.message || errorData?.error || 'Erro ao deletar imagem.');
   }
+}
+
+export async function toggleImageVisibilityAPI(shortCode: string): Promise<any> {
+  const response = await fetchWithAuth(`${BASE_URL}/v1/images/${shortCode}/visibility`, {
+    method: 'PATCH',
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.message || errorData?.error || 'Erro ao alterar visibilidade.');
+  }
+  return response.json();
 }
 
 export async function getUserStatsAPI(): Promise<any> {

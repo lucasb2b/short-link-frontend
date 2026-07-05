@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI, getLinkAnalyticsAPI, uploadImageAPI, getUserImagesAPI, deleteImageAPI } from '../services/api';
+import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI, getLinkAnalyticsAPI, uploadImageAPI, getUserImagesAPI, deleteImageAPI, toggleImageVisibilityAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 
@@ -50,6 +50,7 @@ export interface AppContextType {
   // Actions - photos
   handleUploadPhoto: (file: File, tags: string[], isPrivate: boolean) => Promise<PhotoItem>;
   handleDeletePhoto: (id: string) => Promise<void>;
+  handleTogglePhotoVisibility: (id: string) => Promise<void>;
   handleSelectPhoto: (photo: PhotoItem | null) => void;
   handleOpenPhotoModal: (photo: PhotoItem) => void;
   handleClosePhotoModal: () => void;
@@ -163,7 +164,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         imageUrl: item.storageUrl.startsWith('http') ? item.storageUrl : `${window.location.origin}/uploads/${item.storageUrl}`,
         fileName: item.originalFilename,
         size: item.size ? `${(item.size / (1024 * 1024)).toFixed(2)} MB` : 'Desconhecido',
-        isPrivate: false, // You might need to map this based on logic if available, defaulting to false for dashboard
+        isPrivate: item.isPrivate ?? false,
         author: currentUser.name || currentUser.email,
         tags: item.tags || [],
         createdAt: item.createdAt || new Date().toISOString()
@@ -304,7 +305,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     isPrivate: boolean
   ): Promise<PhotoItem> => {
     try {
-      const data = await uploadImageAPI(file, tags);
+      const data = await uploadImageAPI(file, tags, isPrivate);
       
       const newPhoto: PhotoItem = {
         id: `photo-${data.shortCode}`,
@@ -336,6 +337,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       showToast('Foto excluída da estação!');
     } catch (error: any) {
       showToast(error.message || 'Erro ao excluir foto.');
+    }
+  }, [showToast]);
+
+  const handleTogglePhotoVisibility = useCallback(async (id: string) => {
+    try {
+      const shortCode = id.replace('photo-', '');
+      const data = await toggleImageVisibilityAPI(shortCode);
+      setPhotos((prev) =>
+        prev.map((p) =>
+          p.id === id ? { ...p, isPrivate: data.isPrivate } : p
+        )
+      );
+      showToast(data.isPrivate ? 'Foto agora é privada 🔒' : 'Foto agora é pública 🌍');
+    } catch (error: any) {
+      showToast(error.message || 'Erro ao alterar visibilidade.');
     }
   }, [showToast]);
 
@@ -498,6 +514,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     handleCloseStatsModal,
     handleUploadPhoto,
     handleDeletePhoto,
+    handleTogglePhotoVisibility,
     handleSelectPhoto,
     handleOpenPhotoModal,
     handleClosePhotoModal,
