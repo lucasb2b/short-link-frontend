@@ -308,3 +308,19 @@ export async function getUserImagesAPI(page: number = 0): Promise<{
 
   return response.json();
 }
+
+export async function deleteImageAPI(shortCode: string): Promise<void> {
+  const token = localStorage.getItem('tremz_token');
+  const response = await fetch(`${BASE_URL}/v1/images/${shortCode}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao deletar imagem.';
+    throw new Error(message);
+  }
+}

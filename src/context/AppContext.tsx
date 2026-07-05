@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI, getLinkAnalyticsAPI, uploadImageAPI, getUserImagesAPI } from '../services/api';
+import { changePasswordAPI, loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, shortenLinkAPI, getUserLinksAPI, revokeLinkAPI, getLinkAnalyticsAPI, uploadImageAPI, getUserImagesAPI, deleteImageAPI } from '../services/api';
 import { LinkItem, PhotoItem } from '../types';
 import { INITIAL_LINKS, INITIAL_PHOTOS } from '../data';
 
@@ -49,7 +49,7 @@ export interface AppContextType {
   handleCloseStatsModal: () => void;
   // Actions - photos
   handleUploadPhoto: (file: File, tags: string[], isPrivate: boolean) => Promise<PhotoItem>;
-  handleDeletePhoto: (id: string) => void;
+  handleDeletePhoto: (id: string) => Promise<void>;
   handleSelectPhoto: (photo: PhotoItem | null) => void;
   handleOpenPhotoModal: (photo: PhotoItem) => void;
   handleClosePhotoModal: () => void;
@@ -131,29 +131,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       const data = await getUserLinksAPI(0); // página 0, tamanho 10
       
-      // Mapeia os links e busca os cliques reais do mesmo endpoint do modal para garantir o número exato
-      const mappedLinks: LinkItem[] = await Promise.all(
-        data.content.map(async (item: any) => {
-          let realClicks = item.clicks || 0;
-          
-          try {
-            // Busca o analytics para ter 100% de certeza do número real
-            const analytics = await getLinkAnalyticsAPI(item.shortCode);
-            realClicks = analytics.totalClicks || 0;
-          } catch (err) {
-            console.error(`Erro ao buscar analytics do link ${item.shortCode}`);
-          }
-
-          return {
-            id: item.shortCode,
-            originalUrl: item.originalUrl,
-            shortUrl: item.shortUrl,
-            clicks: realClicks,
-            createdAt: item.createdAt || new Date().toISOString(),
-            trend: 'stable' as const,
-          };
-        })
-      );
+      const mappedLinks: LinkItem[] = data.content.map((item: any) => {
+        return {
+          id: item.shortCode,
+          originalUrl: item.originalUrl,
+          shortUrl: item.shortUrl,
+          clicks: item.clicks || 0,
+          createdAt: item.createdAt || new Date().toISOString(),
+          trend: 'stable' as const,
+        };
+      });
       
       setLinks(mappedLinks);
     } catch (error) {
@@ -299,9 +286,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentUser, showToast]);
 
-  const handleDeletePhoto = useCallback((id: string) => {
-    setPhotos((prev) => prev.filter((p) => p.id !== id));
-    showToast('Foto excluída da estação!');
+  const handleDeletePhoto = useCallback(async (id: string) => {
+    try {
+      const shortCode = id.replace('photo-', '');
+      await deleteImageAPI(shortCode);
+      setPhotos((prev) => prev.filter((p) => p.id !== id));
+      showToast('Foto excluída da estação!');
+    } catch (error: any) {
+      showToast(error.message || 'Erro ao excluir foto.');
+    }
   }, [showToast]);
 
   const handleSelectPhoto = useCallback((photo: PhotoItem | null) => {
