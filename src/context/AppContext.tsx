@@ -240,10 +240,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleCopyText = useCallback((text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setIsCopiedId(id);
-    setTimeout(() => setIsCopiedId(null), 3000);
-  }, []);
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          setIsCopiedId(id);
+          setTimeout(() => setIsCopiedId(null), 3000);
+          showToast('Copiado para a área de transferência!');
+        })
+        .catch(() => showToast('Erro ao copiar texto.'));
+    } else {
+      // Fallback para HTTP (acesso local via celular)
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      // Evita rolagem da tela para o elemento
+      textArea.style.position = 'fixed';
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setIsCopiedId(id);
+        setTimeout(() => setIsCopiedId(null), 3000);
+        showToast('Copiado para a área de transferência!');
+      } catch (err) {
+        showToast('Erro ao copiar texto no celular.');
+      }
+      document.body.removeChild(textArea);
+    }
+  }, [showToast]);
 
   const handleOpenStatsModal = useCallback((link: LinkItem) => {
     setSelectedStatsLink(link);

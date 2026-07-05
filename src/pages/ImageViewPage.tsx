@@ -16,11 +16,34 @@ interface ImageDetails {
   size?: number;
 }
 
+function getRemainingTime(expiresAt: string) {
+  const total = Date.parse(expiresAt) - Date.now();
+  if (total <= 0) return null;
+  const days = Math.floor(total / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((total / 1000 / 60) % 60);
+  const seconds = Math.floor((total / 1000) % 60);
+  return { days, hours, minutes, seconds };
+}
+
 export default function ImageViewPage() {
   const { shortCode } = useParams<{ shortCode: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [imageDetails, setImageDetails] = useState<ImageDetails | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{days: number, hours: number, minutes: number, seconds: number} | null>(null);
+
+  useEffect(() => {
+    if (!imageDetails?.expiresAt) return;
+    
+    const updateTimer = () => {
+      setTimeLeft(getRemainingTime(imageDetails.expiresAt!));
+    };
+    
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [imageDetails]);
 
   useEffect(() => {
     if (shortCode) {
@@ -146,9 +169,32 @@ export default function ImageViewPage() {
                 <Clock className="w-3.5 h-3.5" />
                 Vencimento do Trem
               </h3>
-              <p className="text-xs text-on-surface-variant font-medium leading-relaxed">
-                Essa imagem expira em: <span className="font-bold">{new Date(expiresAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>. Após essa data, o trem vai embora e não volta mais!
+              <p className="text-xs text-on-surface-variant font-medium leading-relaxed mb-2">
+                Essa imagem é temporária e será apagada do servidor na data limite.
               </p>
+              
+              {timeLeft ? (
+                <div className="flex gap-2">
+                  <div className="flex flex-col items-center bg-tertiary-container text-on-tertiary-container p-2 rounded-lg min-w-[50px] shadow-sm">
+                    <span className="font-mono font-black text-lg">{timeLeft.days}</span>
+                    <span className="text-[9px] font-bold uppercase">Dias</span>
+                  </div>
+                  <div className="flex flex-col items-center bg-tertiary-container text-on-tertiary-container p-2 rounded-lg min-w-[50px] shadow-sm">
+                    <span className="font-mono font-black text-lg">{timeLeft.hours}</span>
+                    <span className="text-[9px] font-bold uppercase">Horas</span>
+                  </div>
+                  <div className="flex flex-col items-center bg-tertiary-container text-on-tertiary-container p-2 rounded-lg min-w-[50px] shadow-sm">
+                    <span className="font-mono font-black text-lg">{timeLeft.minutes}</span>
+                    <span className="text-[9px] font-bold uppercase">Min</span>
+                  </div>
+                  <div className="flex flex-col items-center bg-error-container text-on-error-container p-2 rounded-lg min-w-[50px] shadow-sm animate-pulse">
+                    <span className="font-mono font-black text-lg">{timeLeft.seconds}</span>
+                    <span className="text-[9px] font-bold uppercase">Seg</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-error font-bold text-sm">Tempo esgotado! A imagem foi removida.</p>
+              )}
             </div>
           )}
 
