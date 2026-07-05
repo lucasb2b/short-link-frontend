@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { useApp } from '../context/AppContext';
+import { useAuth } from '../contexts/AuthContext';
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter';
 import { evaluatePasswordStrength } from '../utils/password';
 
 export default function SignupPage() {
-  const { handleSignup } = useApp();
+  const { handleSignup } = useAuth();
   const navigate = useNavigate();
 
   const [name, setName] = useState('');

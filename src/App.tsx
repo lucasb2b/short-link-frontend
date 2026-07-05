@@ -3,7 +3,8 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-import { useApp } from './context/AppContext';
+import { useToast } from './contexts/ToastContext';
+import { usePhotos } from './contexts/PhotoContext';
 
 // Layout & Guards
 import Header from './components/Header';
@@ -29,12 +30,12 @@ import ImageViewPage from './pages/ImageViewPage';
 import PhotoDetail from './components/PhotoDetail';
 
 export default function App() {
+  const { toastMessage } = useToast();
   const {
-    toastMessage,
     selectedPhoto,
     handleSelectPhoto,
     photos,
-  } = useApp();
+  } = usePhotos();
   const location = useLocation();
 
   // Clear selected photo on navigation away from home or photo query

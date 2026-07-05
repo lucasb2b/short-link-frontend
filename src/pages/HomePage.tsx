@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
-import { Link2, Image as ImageIcon } from 'lucide-react';
-import { motion } from 'motion/react';
-import { useApp } from '../context/AppContext';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
+import { Train, Upload, Image as ImageIcon, Shield, Zap, Sparkles, Check, FileUp, X, Loader2, Link2 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { usePhotos } from '../contexts/PhotoContext';
+import { useLinks } from '../contexts/LinkContext';
+import { useToast } from '../contexts/ToastContext';
 import LinkShortener from '../components/LinkShortener';
 import PhotoUploader from '../components/PhotoUploader';
 import PublicGallery from '../components/PublicGallery';
 import { INITIAL_PHOTOS } from '../data';
 
 export default function HomePage() {
-  const { handleShortenLink, handleUploadPhoto, photos, handleSelectPhoto, currentUser } = useApp();
+  const { currentUser } = useAuth();
+  const { handleUploadPhoto, photos, handleSelectPhoto } = usePhotos();
+  const { handleShortenLink } = useLinks();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'link' | 'photo'>('link');
 
   return (
@@ -75,7 +82,7 @@ export default function HomePage() {
 
         <div className="relative">
           {activeTab === 'link' ? (
-            <LinkShortener onShorten={handleShortenLink} />
+            <LinkShortener />
           ) : (
             <PhotoUploader onUpload={handleUploadPhoto} isLoggedIn={!!currentUser} />
           )}

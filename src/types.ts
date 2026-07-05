@@ -47,3 +47,9 @@ export interface AnalyticsResponseDTO {
   deviceTypes: Record<string, number>;
   countries: Record<string, number>;
 }
+
+export interface User {
+  email: string;
+  name: string;
+  avatarUrl?: string;
+}

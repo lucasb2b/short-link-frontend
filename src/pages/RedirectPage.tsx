@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { useApp } from '../context/AppContext';
+import { useLinks } from '../contexts/LinkContext';
 import RedirectScreen from '../components/RedirectScreen';
 import { getLinkInfoAPI } from '../services/api';
 import { LinkItem } from '../types';
 
 export default function RedirectPage() {
-  const { redirectingLink } = useApp();
+  const { redirectingLink, fetchUserLinks } = useLinks();
   const navigate = useNavigate();
   const { shortCode } = useParams<{ shortCode?: string }>(); // 👈 captura o parâmetro da URL
 

@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Copy, Check, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { usePhotos } from '../contexts/PhotoContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function DashboardPhotosPage() {
   const { 
     photos, 
-    isCopiedId, 
     totalPhotos,
     totalPhotosPages,
     fetchUserImages,
     handleDeletePhoto, 
     handleOpenPhotoModal, 
-    handleCopyText, 
     handleTogglePhotoVisibility 
-  } = useApp();
+  } = usePhotos();
+  const { handleCopyText, isCopiedId } = useToast();
   const navigate = useNavigate();
 
   const [photosPage, setPhotosPage] = useState(1);

@@ -1,9 +1,9 @@
 import React from 'react';
-import { useApp } from '../context/AppContext';
+import { useAuth } from '../contexts/AuthContext';
 import SettingsPanel from '../components/SettingsPanel';
 
 export default function DashboardSettingsPage() {
-  const { currentUser, handleUpdateProfile, handleDeleteAccount } = useApp();
+  const { currentUser, handleUpdateProfile, handleDeleteAccount } = useAuth();
 
   if (!currentUser) return null;
 

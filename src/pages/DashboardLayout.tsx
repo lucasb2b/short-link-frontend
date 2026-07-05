@@ -4,7 +4,9 @@ import {
   Link2, Image as ImageIcon, BarChart3, Settings, LogOut,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useApp } from '../context/AppContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useLinks } from '../contexts/LinkContext';
+import { usePhotos } from '../contexts/PhotoContext';
 import LinkStatsModal from '../components/LinkStatsModal';
 import PhotoDetailModal from '../components/PhotoDetailModal';
 
@@ -17,9 +19,15 @@ export default function DashboardLayout() {
   const {
     currentUser,
     handleLogout,
-    isStatsModalOpen, handleCloseStatsModal, selectedStatsLink,
-    isPhotoModalOpen, handleClosePhotoModal, selectedDashboardPhoto,
-  } = useApp();
+  } = useAuth();
+  
+  const {
+    isStatsModalOpen, handleCloseStatsModal, selectedStatsLink
+  } = useLinks();
+
+  const {
+    isPhotoModalOpen, handleClosePhotoModal, selectedDashboardPhoto
+  } = usePhotos();
   const navigate = useNavigate();
 
   const onLogout = () => {

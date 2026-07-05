@@ -1,22 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, BarChart3, ExternalLink, Copy, Check, Trash2,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useLinks } from '../contexts/LinkContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function DashboardLinksPage() {
   const {
     links,
-    isCopiedId,
-    totalLinks,
     totalLinksPages,
-    fetchUserLinks,
+    totalLinks,
     handleDeleteLink,
-    handleOpenStatsModal,
-    handleCopyText,
     triggerRedirect,
-  } = useApp();
+    handleOpenStatsModal,
+    fetchUserLinks
+  } = useLinks();
+  const { handleCopyText, isCopiedId } = useToast();
   const navigate = useNavigate();
 
   const [linksPage, setLinksPage] = useState(1);

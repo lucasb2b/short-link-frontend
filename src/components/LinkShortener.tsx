@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { Link2, ArrowRight, Copy, Check, Sparkles, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { LinkItem } from '../types';
-import { useApp } from '../context/AppContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useLinks } from '../contexts/LinkContext';
 
-interface LinkShortenerProps {
-  onShorten: (originalUrl: string) => Promise<LinkItem>;
-}
-
-export default function LinkShortener({ onShorten }: LinkShortenerProps) {
-  const { currentUser } = useApp();
+export default function LinkShortener() {
+  const { currentUser } = useAuth();
+  const { handleShortenLink } = useLinks();
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -53,7 +51,7 @@ export default function LinkShortener({ onShorten }: LinkShortenerProps) {
     try {
       // Pass the cleaned URL
       const targetUrl = url.startsWith('http') ? url : `https://${url}`;
-      const shortened = await onShorten(targetUrl);
+      const shortened = await handleShortenLink(targetUrl);
       setResult(shortened);
       setUrl('');
     } catch (err: any) {

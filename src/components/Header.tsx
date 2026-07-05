@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Menu, X, Link as LinkIcon, Image as ImageIcon, BarChart3, LogOut, Coffee } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useApp } from '../context/AppContext';
+import { useAuth } from '../contexts/AuthContext';
 import { LOGO_URL } from '../data';
 
 export default function Header() {
-  const { currentUser, handleLogout } = useApp();
+  const { currentUser, handleLogout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 

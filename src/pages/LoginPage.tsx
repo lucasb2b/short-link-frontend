@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { useApp } from '../context/AppContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
-  const { handleLogin } = useApp();
+  const { handleLogin } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
