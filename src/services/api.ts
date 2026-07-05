@@ -324,3 +324,22 @@ export async function deleteImageAPI(shortCode: string): Promise<void> {
     throw new Error(message);
   }
 }
+
+// ─── Estatísticas Globais ────────────────────────────────────────────────
+
+export async function getUserStatsAPI(): Promise<any> {
+  const token = localStorage.getItem('tremz_token');
+  const response = await fetch(`${BASE_URL}/v1/stats/overview`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    const message = errorData?.message || errorData?.error || 'Erro ao carregar estatísticas globais.';
+    throw new Error(message);
+  }
+
+  return response.json();
+}

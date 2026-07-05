@@ -1,9 +1,54 @@
-import React from 'react';
-import { BarChart3, TrendingUp, Link2, ImageIcon, Database, Globe, Layers, Laptop } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { BarChart3, TrendingUp, Link2, ImageIcon, Database, Globe, Layers, Laptop, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { BROWSER_STATS, OS_STATS, COUNTRY_STATS, MAP_URL } from '../data';
+import { MAP_URL } from '../data';
+import { getUserStatsAPI } from '../services/api';
+
+interface StatsResponse {
+  totalLinks: number;
+  totalClicks: number;
+  totalPhotos: number;
+  trafficSavedBytes: number;
+  topCountries: Record<string, number>;
+  topBrowsers: Record<string, number>;
+  topOS: Record<string, number>;
+}
+
+function formatBytes(bytes: number) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+const mapToPercentages = (data: Record<string, number>, total: number) => {
+  return Object.entries(data).map(([name, count], index) => {
+    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+    const colors = ['#2b4c7e', '#567c8d', '#f4e0c4', '#f1c998', '#d7894d'];
+    return { name, percentage, color: colors[index % colors.length], count };
+  }).sort((a, b) => b.count - a.count);
+};
 
 export default function StatsPanel() {
+  const [stats, setStats] = useState<StatsResponse | null>(null);
+
+  useEffect(() => {
+    getUserStatsAPI().then(setStats).catch(console.error);
+  }, []);
+
+  if (!stats) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+        <p className="text-primary font-bold">Carregando métricas da estação...</p>
+      </div>
+    );
+  }
+
+  const browsersArray = mapToPercentages(stats.topBrowsers, stats.totalClicks);
+  const osArray = mapToPercentages(stats.topOS, stats.totalClicks);
+  const countriesArray = mapToPercentages(stats.topCountries, stats.totalClicks);
   return (
     <div className="space-y-6">
       {/* Banner / Header */}
@@ -22,29 +67,29 @@ export default function StatsPanel() {
         {[
           {
             title: 'Cliques Totais',
-            value: '13.458',
-            change: '+15.4% de ontem',
+            value: stats.totalClicks.toLocaleString(),
+            change: 'Registrados nos links',
             icon: TrendingUp,
             color: 'bg-primary/10 text-primary border-primary/20',
           },
           {
             title: 'Links Encurtados',
-            value: '228',
-            change: '+8 gerados hoje',
+            value: stats.totalLinks.toLocaleString(),
+            change: 'Gerados na conta',
             icon: Link2,
             color: 'bg-secondary/10 text-secondary border-secondary/20',
           },
           {
             title: 'Fotos Hospedadas',
-            value: '42',
-            change: '14.2 MB consumidos',
+            value: stats.totalPhotos.toLocaleString(),
+            change: 'Imagens ativas',
             icon: ImageIcon,
             color: 'bg-tertiary/10 text-tertiary border-tertiary/20',
           },
           {
             title: 'Tráfego Economizado',
-            value: '3.4 Giga',
-            change: 'Maria Fumaça veloz',
+            value: formatBytes(stats.trafficSavedBytes),
+            change: 'Economia total de banda',
             icon: Database,
             color: 'bg-primary/10 text-primary border-primary/20',
           },
@@ -88,7 +133,7 @@ export default function StatsPanel() {
               Navegadores Utilizados
             </h4>
             <div className="space-y-4">
-              {BROWSER_STATS.map((b) => (
+              {browsersArray.length > 0 ? browsersArray.map((b) => (
                 <div key={b.name} className="space-y-1">
                   <div className="flex justify-between text-xs font-bold text-primary">
                     <span>{b.name}</span>
@@ -104,7 +149,9 @@ export default function StatsPanel() {
                     />
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-xs text-on-surface-variant italic">Sem dados de navegadores.</p>
+              )}
             </div>
           </div>
 
@@ -115,7 +162,7 @@ export default function StatsPanel() {
               Sistemas Operacionais
             </h4>
             <div className="space-y-4">
-              {OS_STATS.map((os) => (
+              {osArray.length > 0 ? osArray.map((os) => (
                 <div key={os.name} className="space-y-1">
                   <div className="flex justify-between text-xs font-bold text-primary">
                     <span>{os.name}</span>
@@ -131,7 +178,9 @@ export default function StatsPanel() {
                     />
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-xs text-on-surface-variant italic">Sem dados de sistema operacional.</p>
+              )}
             </div>
           </div>
         </div>
@@ -164,20 +213,22 @@ export default function StatsPanel() {
 
             {/* Country analytics table list */}
             <div className="sm:col-span-5 space-y-3.5">
-              {COUNTRY_STATS.map((item) => (
+              {countriesArray.length > 0 ? countriesArray.map((item) => (
                 <div
-                  key={item.code}
+                  key={item.name}
                   className="flex items-center justify-between p-2 rounded-xl bg-surface hover:bg-surface-container-low transition duration-150 border border-outline-variant/20"
                 >
                   <div className="flex items-center space-x-2.5">
-                    <span className="text-xl leading-none">{item.flag}</span>
+                    <span className="text-xl leading-none">📍</span>
                     <span className="text-xs font-bold text-primary">{item.name}</span>
                   </div>
                   <span className="text-xs font-mono font-bold text-secondary bg-surface-container px-2 py-0.5 rounded-md border border-outline-variant/30">
                     {item.count.toLocaleString()} cliques
                   </span>
                 </div>
-              ))}
+              )) : (
+                <p className="text-xs text-on-surface-variant italic p-2">Nenhum dado geográfico registrado ainda.</p>
+              )}
             </div>
           </div>
         </div>
