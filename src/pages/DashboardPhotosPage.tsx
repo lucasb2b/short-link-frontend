@@ -4,18 +4,26 @@ import { Plus, Copy, Check, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function DashboardPhotosPage() {
-  const { photos, isCopiedId, handleDeletePhoto, handleOpenPhotoModal, handleCopyText, handleTogglePhotoVisibility } = useApp();
+  const { 
+    photos, 
+    isCopiedId, 
+    totalPhotos,
+    totalPhotosPages,
+    fetchUserImages,
+    handleDeletePhoto, 
+    handleOpenPhotoModal, 
+    handleCopyText, 
+    handleTogglePhotoVisibility 
+  } = useApp();
   const navigate = useNavigate();
 
   const [photosPage, setPhotosPage] = useState(1);
   const [togglingIds, setTogglingIds] = useState<string[]>([]);
   const photosPerPage = 10;
-  const totalPhotosPages = Math.ceil(photos.length / photosPerPage) || 1;
-  const safePhotosPage = Math.min(Math.max(1, photosPage), totalPhotosPages);
-  const paginatedPhotos = photos.slice(
-    (safePhotosPage - 1) * photosPerPage,
-    safePhotosPage * photosPerPage
-  );
+  
+  React.useEffect(() => {
+    fetchUserImages(photosPage - 1);
+  }, [photosPage, fetchUserImages]);
 
   return (
     <div className="space-y-6">
@@ -42,7 +50,7 @@ export default function DashboardPhotosPage() {
       ) : (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-            {paginatedPhotos.map((photo) => (
+            {photos.map((photo) => (
               <div
                 key={photo.id}
                 className="bg-white rounded-2xl border border-outline-variant/50 overflow-hidden shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow"
@@ -140,17 +148,17 @@ export default function DashboardPhotosPage() {
           {/* Pagination */}
           <div className="p-4 bg-white border border-outline-variant/60 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <span className="text-xs text-on-surface-variant font-medium">
-              Mostrando {(safePhotosPage - 1) * photosPerPage + 1} a{' '}
-              {Math.min(safePhotosPage * photosPerPage, photos.length)} de o total de{' '}
-              {photos.length} retratos
+              Mostrando {totalPhotos === 0 ? 0 : (photosPage - 1) * photosPerPage + 1} a{' '}
+              {Math.min(photosPage * photosPerPage, totalPhotos)} de o total de{' '}
+              {totalPhotos} retratos
             </span>
             {totalPhotosPages > 1 && (
               <div className="flex items-center space-x-1 flex-wrap gap-1">
                 <button
-                  disabled={safePhotosPage === 1}
+                  disabled={photosPage === 1}
                   onClick={() => setPhotosPage((p) => Math.max(1, p - 1))}
                   className={`px-2.5 py-1.5 text-[10px] font-extrabold border rounded-lg transition-all cursor-pointer ${
-                    safePhotosPage === 1
+                    photosPage === 1
                       ? 'border-outline-variant/40 text-on-surface-variant/40 bg-surface-container/20 cursor-not-allowed'
                       : 'border-outline-variant hover:border-primary hover:bg-surface-container-high/60 text-primary bg-white'
                   }`}
@@ -162,7 +170,7 @@ export default function DashboardPhotosPage() {
                     key={i}
                     onClick={() => setPhotosPage(i + 1)}
                     className={`w-7 h-7 flex items-center justify-center text-[10px] font-extrabold rounded-lg transition-all cursor-pointer border ${
-                      safePhotosPage === i + 1
+                      photosPage === i + 1
                         ? 'bg-primary border-primary text-surface font-black'
                         : 'border-outline-variant hover:bg-surface-container-high/60 text-primary bg-white'
                     }`}
@@ -171,10 +179,10 @@ export default function DashboardPhotosPage() {
                   </button>
                 ))}
                 <button
-                  disabled={safePhotosPage === totalPhotosPages}
+                  disabled={photosPage === totalPhotosPages}
                   onClick={() => setPhotosPage((p) => Math.min(totalPhotosPages, p + 1))}
                   className={`px-2.5 py-1.5 text-[10px] font-extrabold border rounded-lg transition-all cursor-pointer ${
-                    safePhotosPage === totalPhotosPages
+                    photosPage === totalPhotosPages
                       ? 'border-outline-variant/40 text-on-surface-variant/40 bg-surface-container/20 cursor-not-allowed'
                       : 'border-outline-variant hover:border-primary hover:bg-surface-container-high/60 text-primary bg-white'
                   }`}

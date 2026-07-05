@@ -9,6 +9,9 @@ export default function DashboardLinksPage() {
   const {
     links,
     isCopiedId,
+    totalLinks,
+    totalLinksPages,
+    fetchUserLinks,
     handleDeleteLink,
     handleOpenStatsModal,
     handleCopyText,
@@ -18,12 +21,10 @@ export default function DashboardLinksPage() {
 
   const [linksPage, setLinksPage] = useState(1);
   const linksPerPage = 10;
-  const totalLinksPages = Math.ceil(links.length / linksPerPage) || 1;
-  const safeLinksPage = Math.min(Math.max(1, linksPage), totalLinksPages);
-  const paginatedLinks = links.slice(
-    (safeLinksPage - 1) * linksPerPage,
-    safeLinksPage * linksPerPage
-  );
+  
+  React.useEffect(() => {
+    fetchUserLinks(linksPage - 1);
+  }, [linksPage, fetchUserLinks]);
   const [deletingIds, setDeletingIds] = useState<string[]>([]);
 
   const onTriggerRedirect = (link: Parameters<typeof triggerRedirect>[0]) => {
@@ -67,7 +68,7 @@ export default function DashboardLinksPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container">
-                {paginatedLinks.map((link) => (
+                {links.map((link) => (
                   <tr
                     key={link.id}
                     onClick={() => handleOpenStatsModal(link)}
@@ -147,15 +148,15 @@ export default function DashboardLinksPage() {
           {/* Pagination */}
           <div className="p-4 border-t border-outline-variant/50 flex flex-col sm:flex-row justify-between items-center bg-surface-container-low gap-3">
             <span className="text-xs text-on-surface-variant font-medium">
-              Mostrando {(safeLinksPage - 1) * linksPerPage + 1} a{' '}
-              {Math.min(safeLinksPage * linksPerPage, links.length)} de o total de {links.length} caminhos
+              Mostrando {totalLinks === 0 ? 0 : (linksPage - 1) * linksPerPage + 1} a{' '}
+              {Math.min(linksPage * linksPerPage, totalLinks)} de o total de {totalLinks} caminhos
             </span>
             {totalLinksPages > 1 && (
               <div className="flex items-center space-x-1 flex-wrap gap-1">
                 <button
-                  disabled={safeLinksPage === 1}
+                  disabled={linksPage === 1}
                   onClick={() => setLinksPage((p) => Math.max(1, p - 1))}
-                  className={`px-2.5 py-1.5 text-[10px] font-extrabold border rounded-lg transition-all cursor-pointer ${safeLinksPage === 1
+                  className={`px-2.5 py-1.5 text-[10px] font-extrabold border rounded-lg transition-all cursor-pointer ${linksPage === 1
                     ? 'border-outline-variant/40 text-on-surface-variant/40 bg-surface-container/20 cursor-not-allowed'
                     : 'border-outline-variant hover:border-primary hover:bg-surface-container-high/60 text-primary bg-white'
                     }`}
@@ -166,7 +167,7 @@ export default function DashboardLinksPage() {
                   <button
                     key={i}
                     onClick={() => setLinksPage(i + 1)}
-                    className={`w-7 h-7 flex items-center justify-center text-[10px] font-extrabold rounded-lg transition-all cursor-pointer border ${safeLinksPage === i + 1
+                    className={`w-7 h-7 flex items-center justify-center text-[10px] font-extrabold rounded-lg transition-all cursor-pointer border ${linksPage === i + 1
                       ? 'bg-primary border-primary text-surface font-black'
                       : 'border-outline-variant hover:bg-surface-container-high/60 text-primary bg-white'
                       }`}
@@ -175,9 +176,9 @@ export default function DashboardLinksPage() {
                   </button>
                 ))}
                 <button
-                  disabled={safeLinksPage === totalLinksPages}
+                  disabled={linksPage === totalLinksPages}
                   onClick={() => setLinksPage((p) => Math.min(totalLinksPages, p + 1))}
-                  className={`px-2.5 py-1.5 text-[10px] font-extrabold border rounded-lg transition-all cursor-pointer ${safeLinksPage === totalLinksPages
+                  className={`px-2.5 py-1.5 text-[10px] font-extrabold border rounded-lg transition-all cursor-pointer ${linksPage === totalLinksPages
                     ? 'border-outline-variant/40 text-on-surface-variant/40 bg-surface-container/20 cursor-not-allowed'
                     : 'border-outline-variant hover:border-primary hover:bg-surface-container-high/60 text-primary bg-white'
                     }`}

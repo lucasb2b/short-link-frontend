@@ -28,6 +28,10 @@ export interface AppContextType {
   // Data
   links: LinkItem[];
   photos: PhotoItem[];
+  totalLinksPages: number;
+  totalLinks: number;
+  totalPhotosPages: number;
+  totalPhotos: number;
   // Auth
   currentUser: User | null;
   // UI state
@@ -40,6 +44,9 @@ export interface AppContextType {
   selectedStatsLink: LinkItem | null;
   isPhotoModalOpen: boolean;
   selectedDashboardPhoto: PhotoItem | null;
+  // Fetches
+  fetchUserLinks: (page?: number) => Promise<void>;
+  fetchUserImages: (page?: number) => Promise<void>;
   // Actions - links
   handleShortenLink: (originalUrl: string) => Promise<LinkItem>;
   handleDeleteLink: (id: string) => Promise<void>;
@@ -115,6 +122,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
 
+  const [totalLinksPages, setTotalLinksPages] = useState(1);
+  const [totalLinks, setTotalLinks] = useState(0);
+  const [totalPhotosPages, setTotalPhotosPages] = useState(1);
+  const [totalPhotos, setTotalPhotos] = useState(0);
 
   // ── UI states ──────────────────────────────────────────────────────────────
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -129,10 +140,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [selectedDashboardPhoto, setSelectedDashboardPhoto] = useState<PhotoItem | null>(null);
 
-  const fetchUserLinks = useCallback(async () => {
+  const fetchUserLinks = useCallback(async (page: number = 0) => {
     if (!currentUser) return;
     try {
-      const data = await getUserLinksAPI(0); // página 0, tamanho 10
+      const data = await getUserLinksAPI(page); 
       
       const mappedLinks: LinkItem[] = data.content.map((item: any) => {
         return {
@@ -146,18 +157,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
       
       setLinks(mappedLinks);
+      setTotalLinksPages(data.totalPages || 1);
+      setTotalLinks(data.totalElements || 0);
     } catch (error) {
       console.error('Erro ao buscar links do usuário', error);
     }
   }, [currentUser]);
 
-  const fetchUserImages = useCallback(async () => {
+  const fetchUserImages = useCallback(async (page: number = 0) => {
     if (!currentUser) {
       setPhotos([]);
+      setTotalPhotosPages(1);
+      setTotalPhotos(0);
       return;
     }
     try {
-      const data = await getUserImagesAPI(0); // page 0
+      const data = await getUserImagesAPI(page); 
       
       const mappedPhotos: PhotoItem[] = data.content.map((item: any) => ({
         id: `photo-${item.shortCode}`,
@@ -171,6 +186,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }));
 
       setPhotos(mappedPhotos);
+      setTotalPhotosPages(data.totalPages || 1);
+      setTotalPhotos(data.totalElements || 0);
     } catch (error) {
       console.error('Erro ao buscar imagens do usuário', error);
     }
@@ -494,9 +511,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [showToast]);
 
   // ── Context value ──────────────────────────────────────────────────────────
-  const value: AppContextType = {
+    const value: AppContextType = {
     links,
     photos,
+    totalLinksPages,
+    totalLinks,
+    totalPhotosPages,
+    totalPhotos,
     currentUser,
     toastMessage,
     isCopiedId,
@@ -506,6 +527,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     selectedStatsLink,
     isPhotoModalOpen,
     selectedDashboardPhoto,
+    fetchUserLinks,
+    fetchUserImages,
     handleShortenLink,
     handleDeleteLink,
     triggerRedirect,
