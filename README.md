@@ -1,5 +1,5 @@
 <div align="center">
-  <img alt="Tremz.in Logo" src="public/favicon.svg" width="100" />
+  <a href="https://tremz.in">Acessar o Tremz.in</a>
   <h1>Tremz.in — Frontend App</h1>
   <p><strong>A Modern, High-Performance Link Shortener & Image Hosting Platform</strong></p>
 
@@ -33,7 +33,7 @@ A arquitetura do front-end foi pensada para escalar, mantendo um código limpo e
 
 *   **React 18 & Vite**: Para um ambiente de desenvolvimento ultra-rápido e <i>builds</i> otimizados.
 *   **TypeScript**: Tipagem estática rigorosa para garantir a segurança da comunicação com os DTOs do backend.
-*   **TailwindCSS**: Estilização moderna através de classes utilitárias, permitindo a construção rápida de componentes responsivos e "Dark Mode" elegante.
+*   **TailwindCSS**: Estilização moderna através de classes utilitárias, permitindo a construção rápida de componentes responsivos e elegantes.
 *   **Framer Motion**: Responsável por trazer a aplicação à vida através de animações fluídas (<i>micro-interactions</i>) que não impactam o <i>frame rate</i>.
 *   **Lucide React**: Biblioteca de ícones vetoriais modernos e consistentes.
 
@@ -71,7 +71,7 @@ A arquitetura do front-end foi pensada para escalar, mantendo um código limpo e
 
 ---
 
-## 👨‍💻 Arquitetura e Decisões de Design (Para Recrutadores)
+## 👨‍💻 Arquitetura e Decisões de Design
 
 Este projeto demonstra conhecimentos sólidos em engenharia de front-end. Durante o desenvolvimento, o maior desafio de design pattern superado foi a refatoração do *Context API*. Inicialmente construído como um *God Object* (um único contexto gerindo Links, Fotos e Autenticação), a arquitetura foi desmembrada em contextos menores (`useAuth`, `useLinks`, `usePhotos`). Isso aumentou drasticamente a performance de renderização no painel de estatísticas, já que componentes de links não são mais afetados quando o estado das imagens sofre alterações.
 
