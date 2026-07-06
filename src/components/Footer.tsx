@@ -69,7 +69,7 @@ export default function Footer() {
           <p className="flex items-center space-x-1 mt-2 sm:mt-0">
             <span>Desenvolvido com</span>
             <Heart className="w-3.5 h-3.5 text-red-400 fill-red-400 animate-pulse" />
-            <span>em Belo Horizonte</span>
+            <span>em Brasília</span>
           </p>
         </div>
       </div>
