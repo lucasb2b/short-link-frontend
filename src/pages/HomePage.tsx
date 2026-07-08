@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Train, Upload, Image as ImageIcon, Shield, Zap, Sparkles, Check, FileUp, X, Loader2, Link2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { usePhotos } from '../contexts/PhotoContext';
 import { useLinks } from '../contexts/LinkContext';
@@ -12,6 +13,7 @@ import PublicGallery from '../components/PublicGallery';
 import { INITIAL_PHOTOS } from '../data';
 
 export default function HomePage() {
+  const { t } = useTranslation();
   const { currentUser } = useAuth();
   const { handleUploadPhoto, photos, handleSelectPhoto } = usePhotos();
   const { handleShortenLink } = useLinks();
@@ -34,21 +36,20 @@ export default function HomePage() {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
           </span>
           <span className="text-[11px] font-sans font-bold text-primary tracking-wide uppercase">
-            Plataforma 100% Funcional e Veloz
+            {t('home.heroStatus')}
           </span>
         </div>
 
         <h1 className="font-serif font-black text-4xl sm:text-5xl md:text-6xl text-primary tracking-tight leading-none">
-          O encurtador de links mais{' '}
+          {t('home.heroTitle1')}{' '}
           <span className="text-secondary italic underline decoration-wavy decoration-outline-variant/40">
-            mineiro
+            {t('home.heroHighlight')}
           </span>{' '}
-          da web!
+          {t('home.heroTitle2')}
         </h1>
 
         <p className="text-sm sm:text-base md:text-lg text-on-surface-variant font-medium max-w-xl mx-auto leading-relaxed">
-          Encurte seus links e suba suas fotos num piscar de olhos, sem complicação de trem difícil.
-          Com links diretos prontinhos para incorporar em HTML!
+          {t('home.heroSubtitle')}
         </p>
       </div>
 
@@ -57,26 +58,24 @@ export default function HomePage() {
         <div className="flex bg-surface-container rounded-2xl p-1.5 border border-outline-variant/40 shrink-0">
           <button
             onClick={() => setActiveTab('link')}
-            className={`flex-1 py-3 text-sm font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-2 ${
-              activeTab === 'link'
+            className={`flex-1 py-3 text-sm font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-2 ${activeTab === 'link'
                 ? 'bg-primary text-surface shadow-xs'
                 : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-high'
-            }`}
+              }`}
           >
             <Link2 className="w-4 h-4" />
-            <span>Encurtar Link</span>
+            <span>{t('home.tabLink')}</span>
           </button>
 
           <button
             onClick={() => setActiveTab('photo')}
-            className={`flex-1 py-3 text-sm font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-2 ${
-              activeTab === 'photo'
+            className={`flex-1 py-3 text-sm font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center space-x-2 ${activeTab === 'photo'
                 ? 'bg-primary text-surface shadow-xs'
                 : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-high'
-            }`}
+              }`}
           >
             <ImageIcon className="w-4 h-4" />
-            <span>Hospedar Foto</span>
+            <span>{t('home.tabPhoto')}</span>
           </button>
         </div>
 

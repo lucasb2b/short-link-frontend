@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, BarChart3, ExternalLink, Copy, Check, Trash2,
@@ -7,6 +8,7 @@ import { useLinks } from '../contexts/LinkContext';
 import { useToast } from '../contexts/ToastContext';
 
 export default function DashboardLinksPage() {
+  const { t } = useTranslation();
   const {
     links,
     totalLinksPages,
@@ -21,7 +23,7 @@ export default function DashboardLinksPage() {
 
   const [linksPage, setLinksPage] = useState(1);
   const linksPerPage = 10;
-  
+
   React.useEffect(() => {
     fetchUserLinks(linksPage - 1);
   }, [linksPage, fetchUserLinks]);
@@ -36,9 +38,9 @@ export default function DashboardLinksPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-serif font-black text-2xl text-primary">Meus Links Encurtados</h2>
+          <h2 className="font-serif font-black text-2xl text-primary">{t('dashboard.links.title')}</h2>
           <p className="text-xs text-on-surface-variant font-medium mt-1">
-            Crie e gerencie seus caminhos encurtados
+            {t('dashboard.links.subtitle')}
           </p>
         </div>
         <button
@@ -46,14 +48,13 @@ export default function DashboardLinksPage() {
           className="px-4 py-2 bg-primary text-surface font-semibold text-xs rounded-xl hover:bg-primary-container transition flex items-center space-x-1 shadow-sm shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>Novo Link</span>
+          <span>{t('dashboard.links.newLink')}</span>
         </button>
       </div>
 
       {links.length === 0 ? (
         <div className="bg-white p-12 text-center rounded-3xl border border-outline-variant/60 italic text-on-surface-variant text-sm font-medium">
-          Você ainda não encurtou nenhum link, uai! Clique em "Novo Link" ali em cima para gerar seu
-          primeiro trem.
+          {t('dashboard.links.emptyState')}
         </div>
       ) : (
         <div className="bg-white rounded-3xl border border-outline-variant/60 overflow-hidden shadow-xs">
@@ -61,10 +62,10 @@ export default function DashboardLinksPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-container border-b border-outline-variant/40">
-                  <th className="p-4 text-xs font-bold tracking-wider uppercase text-primary font-serif">Destino Original</th>
-                  <th className="p-4 text-xs font-bold tracking-wider uppercase text-primary font-serif">Código Encurtado</th>
-                  <th className="p-4 text-xs font-bold tracking-wider uppercase text-primary font-serif text-center">Cliques</th>
-                  <th className="p-4 text-xs font-bold tracking-wider uppercase text-primary font-serif text-center">Ações</th>
+                  <th className="p-4 text-xs font-bold tracking-wider uppercase text-primary font-serif">{t('dashboard.links.colDestination')}</th>
+                  <th className="p-4 text-xs font-bold tracking-wider uppercase text-primary font-serif">{t('dashboard.links.colCode')}</th>
+                  <th className="p-4 text-xs font-bold tracking-wider uppercase text-primary font-serif text-center">{t('dashboard.links.colClicks')}</th>
+                  <th className="p-4 text-xs font-bold tracking-wider uppercase text-primary font-serif text-center">{t('dashboard.links.colActions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container">
@@ -79,7 +80,7 @@ export default function DashboardLinksPage() {
                         {link.originalUrl}
                       </div>
                       <span className="text-[9px] text-on-surface-variant/70 italic mt-0.5 block">
-                        Criado em: {new Date(link.createdAt).toLocaleDateString('pt-BR')}
+                        {t('dashboard.links.createdAt')} {new Date(link.createdAt).toLocaleDateString('pt-BR')}
                       </span>
                     </td>
                     <td className="p-4 font-mono text-xs font-extrabold text-secondary">
@@ -91,7 +92,7 @@ export default function DashboardLinksPage() {
                             onTriggerRedirect(link);
                           }}
                           className="p-1 text-primary hover:text-secondary hover:bg-surface-container rounded-md transition cursor-pointer shrink-0"
-                          title="Simular cliques do visitante neste link"
+                          title={t('dashboard.links.simulateClicks')}
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                         </button>
@@ -107,7 +108,7 @@ export default function DashboardLinksPage() {
                         <button
                           onClick={(e) => { e.stopPropagation(); handleOpenStatsModal(link); }}
                           className="p-1.5 bg-surface-container-high/60 border border-outline-variant/40 hover:bg-surface-container-high text-primary hover:text-secondary rounded-lg transition cursor-pointer"
-                          title="Ver Estatísticas Detalhadas"
+                          title={t('dashboard.links.viewDetailedStats')}
                         >
                           <BarChart3 className="w-3.5 h-3.5" />
                         </button>
@@ -120,7 +121,7 @@ export default function DashboardLinksPage() {
                             ? 'bg-tertiary/10 text-tertiary border-tertiary-container'
                             : 'bg-surface-container-high/60 border-outline-variant/40 hover:bg-surface-container-high text-primary'
                             }`}
-                          title="Copiar Link"
+                          title={t('dashboard.links.copyLink')}
                         >
                           {isCopiedId === link.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
@@ -133,7 +134,7 @@ export default function DashboardLinksPage() {
                           }}
                           disabled={deletingIds.includes(link.id)}
                           className="p-1.5 bg-error-container/10 border border-error-container/20 text-error hover:bg-error-container/20 rounded-lg transition cursor-pointer"
-                          title="Remover Link"
+                          title={t('dashboard.links.removeLink')}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -148,8 +149,11 @@ export default function DashboardLinksPage() {
           {/* Pagination */}
           <div className="p-4 border-t border-outline-variant/50 flex flex-col sm:flex-row justify-between items-center bg-surface-container-low gap-3">
             <span className="text-xs text-on-surface-variant font-medium">
-              Mostrando {totalLinks === 0 ? 0 : (linksPage - 1) * linksPerPage + 1} a{' '}
-              {Math.min(linksPage * linksPerPage, totalLinks)} de o total de {totalLinks} caminhos
+              {t('dashboard.links.paginationShowing', {
+                from: totalLinks === 0 ? 0 : (linksPage - 1) * linksPerPage + 1,
+                to: Math.min(linksPage * linksPerPage, totalLinks),
+                total: totalLinks
+              })}
             </span>
             {totalLinksPages > 1 && (
               <div className="flex items-center space-x-1 flex-wrap gap-1">
@@ -161,7 +165,7 @@ export default function DashboardLinksPage() {
                     : 'border-outline-variant hover:border-primary hover:bg-surface-container-high/60 text-primary bg-white'
                     }`}
                 >
-                  Voltar Trem
+                  {t('dashboard.links.paginationPrev')}
                 </button>
                 {Array.from({ length: totalLinksPages }).map((_, i) => (
                   <button
@@ -183,7 +187,7 @@ export default function DashboardLinksPage() {
                     : 'border-outline-variant hover:border-primary hover:bg-surface-container-high/60 text-primary bg-white'
                     }`}
                 >
-                  Tocar Diante
+                  {t('dashboard.links.paginationNext')}
                 </button>
               </div>
             )}

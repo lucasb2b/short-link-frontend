@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, Image as ImageIcon, Check, Copy, Tag, User, ShieldAlert, Sparkles, Loader2, Globe, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { PhotoItem } from '../types';
 
 interface PhotoUploaderProps {
@@ -9,6 +10,7 @@ interface PhotoUploaderProps {
 }
 
 export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUploaderProps) {
+  const { t } = useTranslation();
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -18,7 +20,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
   useEffect(() => {
     setIsPrivate(!isLoggedIn);
   }, [isLoggedIn]);
-  
+
   // Upload status states
   const [uploading, setUploading] = useState(false);
   const [uploadedPhoto, setUploadedPhoto] = useState<PhotoItem | null>(null);
@@ -39,16 +41,16 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
 
   const processFile = (selectedFile: File) => {
     if (!selectedFile.type.startsWith('image/')) {
-      alert('Uai, selecione somente arquivos de imagem, por favor!');
+      alert(t('photoUploader.invalidType'));
       return;
     }
     if (selectedFile.size > 2 * 1024 * 1024) {
-      alert('A imagem deve ter no máximo 2MB, sô!');
+      alert(t('photoUploader.fileTooLarge'));
       return;
     }
     setFile(selectedFile);
     setUploadedPhoto(null);
-    
+
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -87,8 +89,8 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
 
     const finalTags = tagsString
       .split(',')
-      .map((t) => t.trim().toLowerCase())
-      .filter((t) => t.length > 0);
+      .map((tag) => tag.trim().toLowerCase())
+      .filter((tag) => tag.length > 0);
 
     try {
       const newPhoto = await onUpload(file, finalTags, isPrivate);
@@ -97,7 +99,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
       setPreviewUrl('');
       setTagsString('');
     } catch (err) {
-      // O erro já será lidado pelo catch do AppContext que exibe um Toast.
+      // Error handled by AppContext with Toast
     } finally {
       setUploading(false);
     }
@@ -120,7 +122,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
 
   return (
     <div className="bg-surface-container-low border border-outline-variant/60 rounded-3xl p-6 md:p-8 shadow-xs relative overflow-hidden">
-      
+
       {/* Accent sparkles in background */}
       <div className="absolute right-3 top-3 opacity-10 pointer-events-none">
         <UploadCloud className="w-40 h-40 text-primary" />
@@ -132,8 +134,8 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
             <ImageIcon className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-serif font-extrabold text-xl text-primary">Hospedagem de Fotos</h3>
-            <p className="text-xs text-on-surface-variant font-medium">Guarde suas imagens de Minas e do mundo</p>
+            <h3 className="font-serif font-extrabold text-xl text-primary">{t('photoUploader.title')}</h3>
+            <p className="text-xs text-on-surface-variant font-medium">{t('photoUploader.subtitle')}</p>
           </div>
         </div>
 
@@ -148,11 +150,10 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
               onDragOver={handleDrag}
               onDragLeave={handleDrag}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-2xl p-8 mb-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[180px] bg-surface/50 ${
-                dragActive
+              className={`border-2 border-dashed rounded-2xl p-8 mb-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[180px] bg-surface/50 ${dragActive
                   ? 'border-primary bg-surface-container-high'
                   : 'border-outline-variant hover:border-primary hover:bg-surface-container-low/40'
-              }`}
+                }`}
             >
               <input
                 ref={fileInputRef}
@@ -162,8 +163,8 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                 onChange={handleChange}
               />
               <UploadCloud className="w-12 h-12 text-primary/80 mb-3 animate-bounce" />
-              <p className="font-bold text-sm text-primary">Arraste seu arquivo de foto aqui</p>
-              <p className="text-xs text-on-surface-variant mt-1">Ou clique para procurar nas pastas do seu computador</p>
+              <p className="font-bold text-sm text-primary">{t('photoUploader.dropzone')}</p>
+              <p className="text-xs text-on-surface-variant mt-1">{t('photoUploader.selectFile')}</p>
               <span className="text-[10px] text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-md mt-4 border border-outline-variant/40 font-mono">
                 PNG, JPG, WEBP, GIF (Até 2MB)
               </span>
@@ -195,13 +196,13 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                   <div>
                     <label className="block text-xs font-bold text-primary mb-1 flex items-center gap-1.5 pb-1">
                       <Tag className="w-3.5 h-3.5 text-secondary" />
-                      Tags/Marcadores (separados por vírgula)
+                      {t('photoUploader.tagsLabel')}
                     </label>
                     <input
                       type="text"
                       value={tagsString}
                       onChange={(e) => setTagsString(e.target.value)}
-                      placeholder="ex: belo-horizonte, comida, trembao"
+                      placeholder={t('photoUploader.tagsPlaceholder')}
                       className="w-full px-3 py-2 rounded-lg bg-white border border-outline-variant text-sm focus:ring-1 focus:ring-primary focus:border-primary text-primary font-medium font-mono"
                     />
                   </div>
@@ -210,56 +211,54 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                     <div>
                       <label className="block text-xs font-bold text-primary mb-1.5 flex items-center gap-1.5">
                         <Lock className="w-3.5 h-3.5 text-secondary" />
-                        Privacidade do Retrato
+                        {t('photoUploader.privacyLabel')}
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
                           onClick={() => setIsPrivate(false)}
-                          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                            !isPrivate
+                          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${!isPrivate
                               ? 'bg-secondary/10 border-secondary text-secondary shadow-xs'
                               : 'bg-white hover:bg-surface-container-low/40 border-outline-variant text-on-surface-variant hover:text-primary'
-                          }`}
+                            }`}
                         >
                           <Globe className="w-3.5 h-3.5" />
-                          <span>Público</span>
+                          <span>{t('photoUploader.publicButton')}</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setIsPrivate(true)}
-                          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                            isPrivate
+                          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${isPrivate
                               ? 'bg-primary/10 border-primary text-primary shadow-xs'
                               : 'bg-white hover:bg-surface-container-low/40 border-outline-variant text-on-surface-variant hover:text-primary'
-                          }`}
+                            }`}
                         >
                           <Lock className="w-3.5 h-3.5" />
-                          <span>Privado</span>
+                          <span>{t('photoUploader.privateButton')}</span>
                         </button>
                       </div>
                       <p className="text-[10px] text-on-surface-variant mt-1.5 font-semibold">
-                        {!isPrivate 
-                          ? '🌍 Qualquer pessoa poderá ver esta foto na Galeria Pública!' 
-                          : '🔒 Apenas você verá essa foto no seu painel privado.'}
+                        {!isPrivate
+                          ? t('photoUploader.publicHint')
+                          : t('photoUploader.privateHint')}
                       </p>
                     </div>
                   ) : (
                     <div className="p-3 bg-surface/50 rounded-xl border border-outline-variant/60 space-y-1">
                       <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider flex items-center gap-1.5">
                         <Lock className="w-3.5 h-3.5 text-secondary" />
-                        Privacidade do Retrato
+                        {t('photoUploader.privacyLabel')}
                       </span>
-                      <p className="text-xs font-bold text-primary flex items-center gap-1">🔒 Privado por padrão</p>
+                      <p className="text-xs font-bold text-primary flex items-center gap-1">{t('photoUploader.privateDefault')}</p>
                       <p className="text-[10px] text-on-surface-variant leading-relaxed">
-                        Como usuário não identificado, esta foto será enviada como privada. Somente quem possuir o link de compartilhamento poderá visualizá-la.
+                        {t('photoUploader.privateDefaultHint')}
                       </p>
                     </div>
                   )}
 
                   {!isLoggedIn && (
                     <div className="p-2.5 bg-surface-container-low rounded-xl border border-outline-variant/50 text-[11px] text-on-surface-variant leading-relaxed">
-                      💡 Sô, se você <span className="font-bold">entrar na sua conta</span>, suas fotos não expiram em 30 dias e ficam guardadas no seu painel pessoal! Suas fotos subirão como "Usuário Não Identificado".
+                      {t('photoUploader.loginHint')}
                     </div>
                   )}
                 </div>
@@ -274,13 +273,13 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                   }}
                   className="px-4 py-2.5 rounded-xl border border-outline-variant text-xs text-primary font-bold hover:bg-surface-container-low transition cursor-pointer"
                 >
-                  Limpar Foto
+                  {t('photoUploader.clearButton')}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2.5 bg-primary text-surface font-bold rounded-xl text-xs sm:text-sm hover:bg-primary-container transition shadow-sm cursor-pointer flex items-center space-x-1"
                 >
-                  <span>Subir este Retrato</span>
+                  <span>{t('photoUploader.uploadButton')}</span>
                   <Sparkles className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -298,7 +297,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
               <div className="relative inline-flex items-center justify-center">
                 <Loader2 className="w-16 h-16 text-primary animate-spin" />
               </div>
-              <p className="text-sm font-serif italic text-primary animate-pulse">Hospedando seu trem na nuvem...</p>
+              <p className="text-sm font-serif italic text-primary animate-pulse">{t('photoUploader.uploading')}</p>
             </motion.div>
           )}
 
@@ -315,14 +314,13 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                   <div className="p-1.5 bg-tertiary/10 rounded-lg">
                     <Check className="w-4 h-4" />
                   </div>
-                  <span>Uai, subiu trem bão demais!</span>
+                  <span>{t('photoUploader.uploadSuccess')}</span>
                 </div>
-                <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full self-start sm:self-auto ${
-                  uploadedPhoto.isPrivate 
-                    ? 'bg-error/10 text-error border border-error/20' 
+                <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full self-start sm:self-auto ${uploadedPhoto.isPrivate
+                    ? 'bg-error/10 text-error border border-error/20'
                     : 'bg-tertiary/10 text-tertiary border border-tertiary/20'
-                }`}>
-                  {uploadedPhoto.isPrivate ? '🔒 Link Privado (Não listado na página inicial)' : '🌍 Público na Galeria'}
+                  }`}>
+                  {uploadedPhoto.isPrivate ? t('photoUploader.privateBadge') : t('photoUploader.publicBadge')}
                 </span>
               </div>
 
@@ -339,13 +337,13 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                     <p className="text-xs font-serif font-extrabold text-primary truncate max-w-full" title={uploadedPhoto.fileName}>
                       {uploadedPhoto.fileName}
                     </p>
-                    <p className="text-[10px] text-on-surface-variant font-mono mt-0.5">Espaço ocupado: {uploadedPhoto.size}</p>
+                    <p className="text-[10px] text-on-surface-variant font-mono mt-0.5">{t('photoUploader.sizeUsed')}: {uploadedPhoto.size}</p>
                   </div>
 
                   {/* 1. Share link to Photo Page */}
                   <div className="space-y-1">
                     <label className="block text-[10px] font-extrabold text-primary uppercase tracking-wide">
-                      🔗 Link de Compartilhamento (Página do Retrato)
+                      {t('photoUploader.shareLinkLabel')}
                     </label>
                     <div className="flex items-center gap-1.5">
                       <input
@@ -356,21 +354,20 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                       />
                       <button
                         onClick={copyShareUrl}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold font-sans transition shrink-0 cursor-pointer flex items-center justify-center space-x-1 min-w-[100px] ${
-                          copiedShare
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold font-sans transition shrink-0 cursor-pointer flex items-center justify-center space-x-1 min-w-[100px] ${copiedShare
                             ? 'bg-tertiary text-surface'
                             : 'bg-primary text-surface hover:bg-primary-container'
-                        }`}
+                          }`}
                       >
                         {copiedShare ? (
                           <>
                             <Check className="w-3.5 h-3.5" />
-                            <span>Copiado!</span>
+                            <span>{t('photoUploader.copied')}</span>
                           </>
                         ) : (
                           <>
                             <Copy className="w-3.5 h-3.5" />
-                            <span>Copiar</span>
+                            <span>{t('photoUploader.copyButton')}</span>
                           </>
                         )}
                       </button>
@@ -380,7 +377,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                   {/* 2. Direct embedded image URL */}
                   <div className="space-y-1">
                     <label className="block text-[10px] font-extrabold text-on-surface-variant uppercase tracking-wide">
-                      🖼️ Link Direto do Arquivo (Para tags HTML)
+                      {t('photoUploader.directLinkLabel')}
                     </label>
                     <div className="flex items-center gap-1.5">
                       <input
@@ -391,21 +388,20 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                       />
                       <button
                         onClick={copyUrl}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold font-sans transition shrink-0 cursor-pointer flex items-center justify-center space-x-1 min-w-[100px] ${
-                          copied
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold font-sans transition shrink-0 cursor-pointer flex items-center justify-center space-x-1 min-w-[100px] ${copied
                             ? 'bg-tertiary text-surface'
                             : 'bg-secondary text-surface hover:bg-secondary-container'
-                        }`}
+                          }`}
                       >
                         {copied ? (
                           <>
                             <Check className="w-3.5 h-3.5" />
-                            <span>Copiado!</span>
+                            <span>{t('photoUploader.copied')}</span>
                           </>
                         ) : (
                           <>
                             <Copy className="w-3.5 h-3.5" />
-                            <span>Copiar</span>
+                            <span>{t('photoUploader.copyButton')}</span>
                           </>
                         )}
                       </button>
@@ -419,7 +415,7 @@ export default function PhotoUploader({ onUpload, isLoggedIn = false }: PhotoUpl
                   onClick={() => setUploadedPhoto(null)}
                   className="px-4 py-2 bg-primary text-surface font-extrabold text-xs rounded-xl hover:bg-primary-container transition cursor-pointer"
                 >
-                  Subir Outra Foto
+                  {t('photoUploader.uploadAnotherButton')}
                 </button>
               </div>
             </motion.div>

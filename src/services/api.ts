@@ -1,5 +1,7 @@
 // src/services/api.ts
 
+import i18next from '../i18n/config';
+
 const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
 let BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${host}:8080`;
 
@@ -17,7 +19,7 @@ export class SessionExpiredError extends Error {
 async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
   let token = localStorage.getItem('tremz_token');
   const headers = new Headers(options.headers || {});
-  
+
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
@@ -80,7 +82,10 @@ export async function loginAPI(email: string, password: string) {
 export async function registerAPI(name: string, email: string, password: string) {
   const response = await fetch(`${BASE_URL}/v1/auth/register`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept-Language': i18next.language || 'pt-BR'
+    },
     body: JSON.stringify({ name, email, password }),
   });
 
@@ -101,6 +106,9 @@ export async function verifyEmailAPI(token: string): Promise<void> {
 export async function forgotPasswordAPI(email: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/v1/auth/forgot-password?email=${encodeURIComponent(email)}`, {
     method: 'POST',
+    headers: {
+      'Accept-Language': i18next.language || 'pt-BR'
+    },
   });
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);

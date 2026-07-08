@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import { useTranslation } from 'react-i18next';
 import { loginAPI, registerAPI, deactivateAccountAPI, updateProfileAPI, changePasswordAPI } from '../services/api';
 import { useToast } from './ToastContext';
 import { User } from '../types';
@@ -34,6 +35,7 @@ export function useAuth(): AuthContextType {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast();
+  const { t } = useTranslation();
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const token = localStorage.getItem('tremz_token');
@@ -63,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleLogin = useCallback(
     async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
       if (!email || !password) {
-        return { success: false, error: 'Preencha os campos obrigatórios primeiro!' };
+        return { success: false, error: t('toast.fillRequiredFields') };
       }
       try {
         const data = await loginAPI(email, password);
@@ -83,29 +85,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           avatarUrl: '',
         });
 
-        showToast(`Bem-vindo à estação, ${decoded.sub}!`);
+        showToast(t('toast.welcomeBack', { email: decoded.sub }));
         return { success: true };
       } catch (error: any) {
-        return { success: false, error: error.message || 'Erro ao fazer login.' };
+        return { success: false, error: error.message || t('toast.loginError') };
       }
     },
-    [showToast]
+    [showToast, t]
   );
 
   const handleSignup = useCallback(
     async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
       if (!name || !email || !password) {
-        return { success: false, error: 'Preencha todos os campos do cadastro do trem!' };
+        return { success: false, error: t('toast.fillAllSignupFields') };
       }
       try {
         await registerAPI(name, email, password);
-        showToast('Cadastro criado! Verifique seu e‑mail para ativar a conta.');
+        showToast(t('toast.signupSuccess'));
         return { success: true };
       } catch (error: any) {
-        return { success: false, error: error.message || 'Erro ao criar conta.' };
+        return { success: false, error: error.message || t('toast.signupError') };
       }
     },
-    [showToast]
+    [showToast, t]
   );
 
   const handleLogout = useCallback(() => {
@@ -113,12 +115,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('tremz_refreshToken');
     localStorage.removeItem(USER_PROFILE_KEY);
     setCurrentUser(null);
-    showToast('Saiu da estação. Volte logo, sô!');
-  }, [showToast]);
+    showToast(t('toast.loggedOutStation'));
+  }, [showToast, t]);
 
   const handleUpdateProfile = useCallback(
     async (_data: { name?: string; password?: string; avatarUrl?: string; currentPassword?: string }) => {
-      if (!currentUser) return { success: false, error: 'Usuário não autenticado.' };
+      if (!currentUser) return { success: false, error: t('toast.notAuthenticated') };
       try {
         if (_data.name && _data.name !== currentUser.name) {
           await updateProfileAPI(_data.name);
@@ -142,13 +144,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return updated;
         });
 
-        showToast('Perfil atualizado com sucesso!');
+        showToast(t('toast.profileUpdated'));
         return { success: true };
       } catch (error: any) {
-        return { success: false, error: error.message || 'Erro ao atualizar perfil.' };
+        return { success: false, error: error.message || t('toast.profileUpdateError') };
       }
     },
-    [currentUser, showToast]
+    [currentUser, showToast, t]
   );
 
   const handleDeleteAccount = useCallback(async () => {
@@ -156,11 +158,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await deactivateAccountAPI();
       localStorage.removeItem('tremz_token');
       setCurrentUser(null);
-      showToast('Sua conta foi desativada. Até mais, sô!');
+      showToast(t('toast.accountDeleted'));
     } catch (error: any) {
-      showToast(error.message || 'Erro ao desativar conta.');
+      showToast(error.message || t('toast.accountDeleteError'));
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   return (
     <AuthContext.Provider value={{ currentUser, handleLogin, handleSignup, handleLogout, handleUpdateProfile, handleDeleteAccount }}>

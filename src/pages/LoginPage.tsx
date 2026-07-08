@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const { handleLogin } = useAuth();
   const navigate = useNavigate();
 
@@ -23,7 +25,7 @@ export default function LoginPage() {
     if (result.success) {
       navigate('/dashboard/links');
     } else {
-      setFormErr(result.error ?? 'Erro ao entrar.');
+      setFormErr(result.error ?? t('auth.errorGeneric'));
     }
   };
 
@@ -37,8 +39,8 @@ export default function LoginPage() {
     >
       <div className="bg-white p-8 rounded-3xl border border-outline-variant/60 shadow-xs space-y-6">
         <div className="text-center space-y-1.5">
-          <h1 className="font-serif font-black text-2xl text-primary">Entrar na Estação</h1>
-          <p className="text-xs text-on-surface-variant">Acesse seus links encurtados e fotos guardadas</p>
+          <h1 className="font-serif font-black text-2xl text-primary">{t('auth.loginTitle')}</h1>
+          <p className="text-xs text-on-surface-variant">{t('auth.loginSubtitle')}</p>
         </div>
 
         {formErr && (
@@ -49,32 +51,32 @@ export default function LoginPage() {
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-primary block">Seu E-mail</label>
+            <label className="text-xs font-bold text-primary block">{t('auth.email')}</label>
             <input
               type="email"
               id="login-email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="lucasbritocientista@gmail.com"
+              placeholder={t('auth.emailPlaceholder')}
               className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface text-sm focus:outline-hidden focus:ring-1 focus:ring-primary text-primary"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-primary block">Sua Senha</label>
+            <label className="text-xs font-bold text-primary block">{t('auth.password')}</label>
             <input
               type="password"
               id="login-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Digite sua senha"
+              placeholder={t('auth.passwordPlaceholder')}
               className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface text-sm focus:outline-hidden focus:ring-1 focus:ring-primary text-primary"
             />
           </div>
 
           <div className="flex justify-end">
             <Link to="/forgot-password" className="text-xs text-secondary font-bold hover:underline">
-              Esqueci minha senha
+              {t('auth.forgotPasswordLink')}
             </Link>
           </div>
 
@@ -84,14 +86,14 @@ export default function LoginPage() {
             id="login-submit"
             className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs cursor-pointer text-sm"
           >
-            {loading ? 'Entrando...' : 'Entrar no Trilho'}
+            {loading ? t('auth.loading') : t('auth.loginButton')}
           </button>
         </form>
 
         <p className="text-xs text-center text-on-surface-variant font-medium">
-          Não possui conta ainda?{' '}
+          {t('auth.noAccount')}{' '}
           <Link to="/signup" className="text-secondary font-bold hover:underline">
-            Fazer Cadastro
+            {t('auth.createAccount')}
           </Link>
         </p>
       </div>

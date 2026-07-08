@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getUserImagesAPI, uploadImageAPI, deleteImageAPI, toggleImageVisibilityAPI } from '../services/api';
 import { PhotoItem } from '../types';
 import { useAuth } from './AuthContext';
@@ -33,6 +34,7 @@ export function usePhotos(): PhotoContextType {
 export function PhotoProvider({ children }: { children: ReactNode }) {
   const { currentUser } = useAuth();
   const { showToast } = useToast();
+  const { t } = useTranslation();
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [totalPhotosPages, setTotalPhotosPages] = useState(1);
@@ -50,13 +52,13 @@ export function PhotoProvider({ children }: { children: ReactNode }) {
       return;
     }
     try {
-      const data = await getUserImagesAPI(page); 
-      
+      const data = await getUserImagesAPI(page);
+
       const mappedPhotos: PhotoItem[] = data.content.map((item: any) => ({
         id: `photo-${item.shortCode}`,
         imageUrl: item.storageUrl.startsWith('http') ? item.storageUrl : `${window.location.origin}/uploads/${item.storageUrl}`,
         fileName: item.originalFilename,
-        size: item.size ? `${(item.size / (1024 * 1024)).toFixed(2)} MB` : 'Desconhecido',
+        size: item.size ? `${(item.size / (1024 * 1024)).toFixed(2)} MB` : t('toast.sizeUnknown'),
         isPrivate: item.isPrivate ?? false,
         author: currentUser.name || currentUser.email,
         tags: item.tags || [],
@@ -69,7 +71,7 @@ export function PhotoProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Erro ao buscar imagens do usuário', error);
     }
-  }, [currentUser]);
+  }, [currentUser, t]);
 
   useEffect(() => {
     fetchUserImages();
@@ -82,26 +84,26 @@ export function PhotoProvider({ children }: { children: ReactNode }) {
       id: `photo-${data.shortCode}`,
       imageUrl: data.storageUrl.startsWith('http') ? data.storageUrl : `${window.location.origin}/uploads/${data.storageUrl}`,
       fileName: data.originalFilename,
-      size: data.size ? `${(data.size / (1024 * 1024)).toFixed(2)} MB` : 'Desconhecido',
+      size: data.size ? `${(data.size / (1024 * 1024)).toFixed(2)} MB` : t('toast.sizeUnknown'),
       isPrivate: data.isPrivate ?? false,
-      author: currentUser?.name || currentUser?.email || 'Anônimo',
+      author: currentUser?.name || currentUser?.email || 'Anonymous',
       tags: data.tags || [],
       createdAt: data.createdAt || new Date().toISOString()
     };
-    showToast('Foto salva na estação com sucesso!');
+    showToast(t('toast.photoUploaded'));
     return newPhoto;
-  }, [fetchUserImages, currentUser, showToast]);
+  }, [fetchUserImages, currentUser, showToast, t]);
 
   const handleDeletePhoto = useCallback(async (id: string) => {
     try {
       const shortCode = id.replace('photo-', '');
       await deleteImageAPI(shortCode);
       setPhotos((prev) => prev.filter((p) => p.id !== id));
-      showToast('Foto excluída da estação!');
+      showToast(t('toast.photoDeleted'));
     } catch (error: any) {
-      showToast(error.message || 'Erro ao excluir foto.');
+      showToast(error.message || t('toast.photoDeleteError'));
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   const handleTogglePhotoVisibility = useCallback(async (id: string) => {
     try {
@@ -112,11 +114,11 @@ export function PhotoProvider({ children }: { children: ReactNode }) {
           p.id === id ? { ...p, isPrivate: data.isPrivate } : p
         )
       );
-      showToast(data.isPrivate ? 'Foto agora é privada 🔒' : 'Foto agora é pública 🌍');
+      showToast(data.isPrivate ? t('toast.photoPrivate') : t('toast.photoPublic'));
     } catch (error: any) {
-      showToast(error.message || 'Erro ao alterar visibilidade.');
+      showToast(error.message || t('toast.visibilityError'));
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   const handleSelectPhoto = useCallback((photo: PhotoItem | null) => {
     setSelectedPhoto(photo);

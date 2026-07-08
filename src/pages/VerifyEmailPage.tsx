@@ -1,21 +1,23 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { verifyEmailAPI } from '../services/api';
 
 export default function VerifyEmailPage() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const navigate = useNavigate();
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('Verificando sua conta...');
+  const [message, setMessage] = useState(t('auth.verifySubtitle'));
   const hasFetched = useRef(false);
 
   useEffect(() => {
     if (!token) {
       setStatus('error');
-      setMessage('Token não encontrado na URL.');
+      setMessage(t('auth.errorGeneric'));
       return;
     }
 
@@ -26,15 +28,15 @@ export default function VerifyEmailPage() {
       try {
         await verifyEmailAPI(token);
         setStatus('success');
-        setMessage('Sua conta foi ativada com sucesso!');
+        setMessage(t('auth.successVerify'));
       } catch (error: any) {
         setStatus('error');
-        setMessage(error.message || 'Erro ao conectar com o servidor.');
+        setMessage(error.message || t('auth.errorGeneric'));
       }
     };
 
     verifyToken();
-  }, [token]);
+  }, [token, t]);
 
   return (
     <motion.div
@@ -46,8 +48,8 @@ export default function VerifyEmailPage() {
     >
       <div className="bg-white p-8 rounded-3xl border border-outline-variant/60 shadow-xs space-y-6 text-center">
         <div className="space-y-1.5">
-          <h1 className="font-serif font-black text-2xl text-primary">Confirmação de E-mail</h1>
-          <p className="text-xs text-on-surface-variant">Estamos validando seu passe de trem.</p>
+          <h1 className="font-serif font-black text-2xl text-primary">{t('auth.verifyTitle')}</h1>
+          <p className="text-xs text-on-surface-variant">{t('auth.verifySubtitle')}</p>
         </div>
 
         {status === 'loading' && (
@@ -67,7 +69,7 @@ export default function VerifyEmailPage() {
               onClick={() => navigate('/login')}
               className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs cursor-pointer text-sm"
             >
-              Ir para o Login
+              {t('auth.loginLink')}
             </button>
           </div>
         )}
@@ -82,7 +84,7 @@ export default function VerifyEmailPage() {
               onClick={() => navigate('/signup')}
               className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs cursor-pointer text-sm"
             >
-              Tentar cadastrar novamente
+              {t('auth.signupButton')}
             </button>
           </div>
         )}

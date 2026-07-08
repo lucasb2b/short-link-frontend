@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart3, TrendingUp, Link2, ImageIcon, Database, Globe, Layers, Laptop, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { MAP_URL } from '../data';
 import { getUserStatsAPI } from '../services/api';
 
@@ -31,6 +32,7 @@ const mapToPercentages = (data: Record<string, number>, total: number) => {
 };
 
 export default function StatsPanel() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<StatsResponse | null>(null);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function StatsPanel() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
         <Loader2 className="w-12 h-12 text-primary animate-spin" />
-        <p className="text-primary font-bold">Carregando métricas da estação...</p>
+        <p className="text-primary font-bold">{t('stats.loadingMetrics')}</p>
       </div>
     );
   }
@@ -55,10 +57,10 @@ export default function StatsPanel() {
       <div>
         <h3 className="font-serif font-black text-2xl text-primary flex items-center gap-2">
           <BarChart3 className="w-6 h-6 text-secondary" />
-          <span>Estatísticas de Tráfego do Trem</span>
+          <span>{t('stats.trafficTitle')}</span>
         </h3>
         <p className="text-sm text-on-surface-variant font-medium mt-1">
-          Acompanhe os números da estação, cliques nos links e visualizações das fotos em tempo real.
+          {t('stats.trafficSubtitle')}
         </p>
       </div>
 
@@ -66,30 +68,30 @@ export default function StatsPanel() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
-            title: 'Cliques Totais',
+            title: t('stats.totalClicks'),
             value: stats.totalClicks.toLocaleString(),
-            change: 'Registrados nos links',
+            change: t('stats.registeredInLinks'),
             icon: TrendingUp,
             color: 'bg-primary/10 text-primary border-primary/20',
           },
           {
-            title: 'Links Encurtados',
+            title: t('stats.shortenedLinks'),
             value: stats.totalLinks.toLocaleString(),
-            change: 'Gerados na conta',
+            change: t('stats.generatedInAccount'),
             icon: Link2,
             color: 'bg-secondary/10 text-secondary border-secondary/20',
           },
           {
-            title: 'Fotos Hospedadas',
+            title: t('stats.hostedPhotos'),
             value: stats.totalPhotos.toLocaleString(),
-            change: 'Imagens ativas',
+            change: t('stats.activeImages'),
             icon: ImageIcon,
             color: 'bg-tertiary/10 text-tertiary border-tertiary/20',
           },
           {
-            title: 'Tráfego Economizado',
+            title: t('stats.savedTraffic'),
             value: formatBytes(stats.trafficSavedBytes),
-            change: 'Economia total de banda',
+            change: t('stats.totalBandwidthSaved'),
             icon: Database,
             color: 'bg-primary/10 text-primary border-primary/20',
           },
@@ -123,14 +125,14 @@ export default function StatsPanel() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Left column: Browser & OS donut stats */}
         <div className="lg:col-span-4 space-y-6">
           {/* Navegadores */}
           <div className="bg-white p-5 rounded-2xl border border-outline-variant/60 space-y-4">
             <h4 className="font-serif font-extrabold text-sm text-primary uppercase tracking-wide flex items-center gap-1.5 border-b border-surface-container pb-3">
               <Layers className="w-4 h-4 text-secondary" />
-              Navegadores Utilizados
+              {t('stats.browsersUsed')}
             </h4>
             <div className="space-y-4">
               {browsersArray.length > 0 ? browsersArray.map((b) => (
@@ -150,7 +152,7 @@ export default function StatsPanel() {
                   </div>
                 </div>
               )) : (
-                <p className="text-xs text-on-surface-variant italic">Sem dados de navegadores.</p>
+                <p className="text-xs text-on-surface-variant italic">{t('stats.noBrowserData')}</p>
               )}
             </div>
           </div>
@@ -159,7 +161,7 @@ export default function StatsPanel() {
           <div className="bg-white p-5 rounded-2xl border border-outline-variant/60 space-y-4">
             <h4 className="font-serif font-extrabold text-sm text-primary uppercase tracking-wide flex items-center gap-1.5 border-b border-surface-container pb-3">
               <Laptop className="w-4 h-4 text-secondary" />
-              Sistemas Operacionais
+              {t('stats.operatingSystems')}
             </h4>
             <div className="space-y-4">
               {osArray.length > 0 ? osArray.map((os) => (
@@ -179,7 +181,7 @@ export default function StatsPanel() {
                   </div>
                 </div>
               )) : (
-                <p className="text-xs text-on-surface-variant italic">Sem dados de sistema operacional.</p>
+                <p className="text-xs text-on-surface-variant italic">{t('stats.noOSData')}</p>
               )}
             </div>
           </div>
@@ -190,10 +192,10 @@ export default function StatsPanel() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-container pb-3">
             <h4 className="font-serif font-extrabold text-sm text-primary uppercase tracking-wide flex items-center gap-1.5">
               <Globe className="w-4 h-4 text-secondary" />
-              De onde vem o povo (Origem de Acessos)
+              {t('stats.originTitle')}
             </h4>
             <span className="text-[10px] text-on-surface-variant font-mono font-medium">
-              Dados atualizados há 10 minutinhos
+              {t('stats.dataUpdated')}
             </span>
           </div>
 
@@ -207,7 +209,7 @@ export default function StatsPanel() {
                 referrerPolicy="no-referrer"
               />
               <div className="absolute bottom-2 left-2 bg-primary/90 text-surface p-1.5 rounded-lg text-[9px] font-mono leading-none border border-outline-variant/30">
-                Uai-analytics Ativo
+                {t('stats.uaiAnalyticsActive')}
               </div>
             </div>
 
@@ -223,11 +225,11 @@ export default function StatsPanel() {
                     <span className="text-xs font-bold text-primary">{item.name}</span>
                   </div>
                   <span className="text-xs font-mono font-bold text-secondary bg-surface-container px-2 py-0.5 rounded-md border border-outline-variant/30">
-                    {item.count.toLocaleString()} cliques
+                    {item.count.toLocaleString()} {t('stats.clicksLabel')}
                   </span>
                 </div>
               )) : (
-                <p className="text-xs text-on-surface-variant italic p-2">Nenhum dado geográfico registrado ainda.</p>
+                <p className="text-xs text-on-surface-variant italic p-2">{t('stats.noGeoData')}</p>
               )}
             </div>
           </div>

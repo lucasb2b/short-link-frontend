@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { forgotPasswordAPI } from '../services/api';
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -16,10 +18,10 @@ export default function ForgotPasswordPage() {
     try {
       await forgotPasswordAPI(email);
       setStatus('success');
-      setMessage('Se o e-mail existir, você receberá um link para redefinir sua senha.');
+      setMessage(t('auth.successForgot'));
     } catch (error: any) {
       setStatus('error');
-      setMessage(error.message || 'Erro ao processar a solicitação.');
+      setMessage(error.message || t('auth.errorGeneric'));
     }
   };
 
@@ -33,8 +35,8 @@ export default function ForgotPasswordPage() {
     >
       <div className="bg-white p-8 rounded-3xl border border-outline-variant/60 shadow-xs space-y-6">
         <div className="text-center space-y-1.5">
-          <h1 className="font-serif font-black text-2xl text-primary">Esqueci a Senha</h1>
-          <p className="text-xs text-on-surface-variant">Informe seu e-mail para enviarmos um link de recuperação</p>
+          <h1 className="font-serif font-black text-2xl text-primary">{t('auth.forgotTitle')}</h1>
+          <p className="text-xs text-on-surface-variant">{t('auth.forgotSubtitle')}</p>
         </div>
 
         {status === 'error' && (
@@ -45,7 +47,7 @@ export default function ForgotPasswordPage() {
 
         {status === 'success' ? (
           <div className="space-y-6 text-center">
-             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-600 text-3xl">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-600 text-3xl">
               ✅
             </div>
             <p className="text-sm font-bold text-green-700">{message}</p>
@@ -53,19 +55,19 @@ export default function ForgotPasswordPage() {
               to="/login"
               className="inline-block w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs text-sm text-center"
             >
-              Voltar para o Login
+              {t('auth.loginLink')}
             </Link>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-primary block">Seu E-mail</label>
+              <label className="text-xs font-bold text-primary block">{t('auth.email')}</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="exemplo@gmail.com"
+                placeholder={t('auth.emailPlaceholder')}
                 className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface text-sm focus:outline-hidden focus:ring-1 focus:ring-primary text-primary"
               />
             </div>
@@ -75,18 +77,18 @@ export default function ForgotPasswordPage() {
               disabled={status === 'loading'}
               className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs cursor-pointer text-sm disabled:opacity-50"
             >
-              {status === 'loading' ? 'Enviando...' : 'Recuperar Senha'}
+              {status === 'loading' ? t('auth.loading') : t('auth.forgotButton')}
             </button>
           </form>
         )}
 
         {status !== 'success' && (
-           <p className="text-xs text-center text-on-surface-variant font-medium">
-             Lembrou a senha?{' '}
-             <Link to="/login" className="text-secondary font-bold hover:underline">
-               Voltar ao Login
-             </Link>
-           </p>
+          <p className="text-xs text-center text-on-surface-variant font-medium">
+            {t('auth.hasAccount')}{' '}
+            <Link to="/login" className="text-secondary font-bold hover:underline">
+              {t('auth.loginLink')}
+            </Link>
+          </p>
         )}
       </div>
     </motion.div>

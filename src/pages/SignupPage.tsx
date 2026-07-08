@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter';
 import { evaluatePasswordStrength } from '../utils/password';
 
 export default function SignupPage() {
+  const { t } = useTranslation();
   const { handleSignup } = useAuth();
   const navigate = useNavigate();
 
@@ -14,7 +16,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
-  
+
   const [formErr, setFormErr] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,18 +25,18 @@ export default function SignupPage() {
     setFormErr('');
 
     if (password !== confirmPassword) {
-      setFormErr('As senhas não coincidem.');
+      setFormErr(t('auth.errorPasswordMismatch'));
       return;
     }
 
     const strength = evaluatePasswordStrength(password);
     if (strength.score < 2 || password.length < 8) {
-      setFormErr('Sua senha é muito fraca ou curta. Por favor, crie uma senha mais forte (mínimo 8 caracteres, mesclando letras e números/símbolos).');
+      setFormErr(t('auth.errorWeakPassword'));
       return;
     }
 
     if (!termsAccepted) {
-      setFormErr('Você precisa aceitar os Termos de Uso para continuar.');
+      setFormErr(t('auth.errorGeneric'));
       return;
     }
 
@@ -44,10 +46,9 @@ export default function SignupPage() {
     setLoading(false);
 
     if (result.success) {
-      // Não navegamos direto para o dashboard, mas para o login com uma mensagem
-      navigate('/login', { state: { message: 'Conta criada! Verifique seu e‑mail.' } });
+      navigate('/login', { state: { message: t('auth.successSignup') } });
     } else {
-      setFormErr(result.error ?? 'Erro ao criar conta.');
+      setFormErr(result.error ?? t('auth.errorGeneric'));
     }
   };
 
@@ -61,8 +62,8 @@ export default function SignupPage() {
     >
       <div className="bg-white p-8 rounded-3xl border border-outline-variant/60 shadow-xs space-y-6">
         <div className="text-center space-y-1.5">
-          <h1 className="font-serif font-black text-2xl text-primary">Criar Conta na Estação</h1>
-          <p className="text-xs text-on-surface-variant">Cadastre-se grátis e guarde suas estatísticas de trem bão</p>
+          <h1 className="font-serif font-black text-2xl text-primary">{t('auth.signupTitle')}</h1>
+          <p className="text-xs text-on-surface-variant">{t('auth.signupSubtitle')}</p>
         </div>
 
         {formErr && (
@@ -73,54 +74,54 @@ export default function SignupPage() {
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-primary block">Nome Completo</label>
+            <label className="text-xs font-bold text-primary block">{t('auth.name')}</label>
             <input
               type="text"
               id="signup-name"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Lucas Brito"
+              placeholder={t('auth.namePlaceholder')}
               className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface text-sm focus:outline-hidden focus:ring-1 focus:ring-primary text-primary"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-primary block">Seu E-mail</label>
+            <label className="text-xs font-bold text-primary block">{t('auth.email')}</label>
             <input
               type="email"
               id="signup-email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="exemplo@gmail.com"
+              placeholder={t('auth.emailPlaceholder')}
               className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface text-sm focus:outline-hidden focus:ring-1 focus:ring-primary text-primary"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-primary block">Definir Senha</label>
+            <label className="text-xs font-bold text-primary block">{t('auth.password')}</label>
             <input
               type="password"
               id="signup-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Escolha uma senha bacana"
+              placeholder={t('auth.passwordPlaceholder')}
               className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface text-sm focus:outline-hidden focus:ring-1 focus:ring-primary text-primary"
             />
             {password && <PasswordStrengthMeter password={password} />}
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-primary block">Confirmar Senha</label>
+            <label className="text-xs font-bold text-primary block">{t('auth.confirmPassword')}</label>
             <input
               type="password"
               id="signup-confirm-password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Repita sua senha"
+              placeholder={t('auth.confirmPasswordPlaceholder')}
               className="w-full px-3 py-2.5 rounded-xl border border-outline-variant bg-surface text-sm focus:outline-hidden focus:ring-1 focus:ring-primary text-primary"
             />
           </div>
@@ -130,11 +131,11 @@ export default function SignupPage() {
             <div className="h-32 overflow-y-auto p-3 bg-surface-variant/30 border border-outline-variant rounded-xl text-[11px] text-on-surface-variant leading-relaxed mb-3">
               <p className="font-bold mb-1">1. Aceitação e Responsabilidade (LGPD)</p>
               <p className="mb-2">Ao se cadastrar na plataforma Tremz.in, você concorda com a coleta do seu nome e e-mail estritamente para fins de autenticação e funcionamento do sistema, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Seus dados não serão vendidos ou repassados a terceiros.</p>
-              
+
               <p className="font-bold mb-1">2. Conteúdo Gerado pelo Usuário</p>
               <p className="mb-2">A plataforma Tremz.in não se responsabiliza pelo teor, legalidade ou segurança dos links encurtados ou das imagens hospedadas pelos usuários. Todo e qualquer conteúdo inserido é de inteira responsabilidade do usuário que o gerou. Nós nos reservamos o direito de remover URLs que violem a lei ou os termos sem aviso prévio.</p>
             </div>
-            
+
             <label className="flex items-start gap-2 cursor-pointer group">
               <input
                 type="checkbox"
@@ -144,7 +145,7 @@ export default function SignupPage() {
                 className="mt-0.5 rounded border-outline-variant text-primary focus:ring-primary cursor-pointer"
               />
               <span className="text-xs text-on-surface-variant group-hover:text-primary transition-colors">
-                Eu li e aceito os termos de uso e declaro estar ciente de minhas responsabilidades.
+                {t('auth.signupButton')}
               </span>
             </label>
           </div>
@@ -154,14 +155,14 @@ export default function SignupPage() {
             disabled={loading}
             className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition shadow-xs cursor-pointer text-sm disabled:opacity-50 mt-2"
           >
-            {loading ? 'Criando passe...' : 'Criar meu Passe de Trem'}
+            {loading ? t('auth.loading') : t('auth.signupButton')}
           </button>
         </form>
 
         <p className="text-xs text-center text-on-surface-variant font-medium">
-          Já possui passe de trem?{' '}
+          {t('auth.hasAccount')}{' '}
           <Link to="/login" className="text-secondary font-bold hover:underline">
-            Ir pro Login
+            {t('auth.loginLink')}
           </Link>
         </p>
       </div>

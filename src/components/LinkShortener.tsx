@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link2, ArrowRight, Copy, Check, Sparkles, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { LinkItem } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useLinks } from '../contexts/LinkContext';
 
 export default function LinkShortener() {
+  const { t } = useTranslation();
   const { currentUser } = useAuth();
   const { handleShortenLink } = useLinks();
   const [url, setUrl] = useState('');
@@ -20,12 +22,12 @@ export default function LinkShortener() {
     setResult(null);
 
     if (!currentUser) {
-      setError('Você precisa estar logado para encurtar links, sô! Faça o login na estação.');
+      setError(t('linkShortener.errorNotLoggedIn'));
       return;
     }
 
     if (!url.trim()) {
-      setError('Uai, digite o link para encurtar primeiro!');
+      setError(t('linkShortener.errorEmpty'));
       return;
     }
 
@@ -43,7 +45,7 @@ export default function LinkShortener() {
     }
 
     if (!isValidUrl) {
-      setError('Eita, esse trem aí não parece um link válido não, sô! Confere ele.');
+      setError(t('linkShortener.errorInvalidUrl'));
       return;
     }
 
@@ -55,7 +57,7 @@ export default function LinkShortener() {
       setResult(shortened);
       setUrl('');
     } catch (err: any) {
-      setError('Deu um tropeço ao tentar encurtar o trem, tente de novo!');
+      setError(t('linkShortener.errorGeneric'));
     } finally {
       setLoading(false);
     }
@@ -82,8 +84,8 @@ export default function LinkShortener() {
             <Link2 className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-serif font-extrabold text-xl text-primary">Encurtador de Links</h3>
-            <p className="text-xs text-on-surface-variant font-medium">Faça seu link comprido caber no bolso</p>
+            <h3 className="font-serif font-extrabold text-xl text-primary">{t('linkShortener.title')}</h3>
+            <p className="text-xs text-on-surface-variant font-medium">{t('linkShortener.subtitle')}</p>
           </div>
         </div>
 
@@ -93,7 +95,7 @@ export default function LinkShortener() {
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="Cole seu link compridão aqui (ex: https://exemplo.com/pagina-gigante)"
+              placeholder={t('linkShortener.placeholder')}
               className="w-full px-4 py-3.5 pr-12 rounded-xl bg-surface border border-outline-variant/80 text-on-surface focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary transition text-sm md:text-base font-sans"
               disabled={loading}
             />
@@ -122,7 +124,7 @@ export default function LinkShortener() {
               disabled={loading}
               className="w-full sm:w-auto ml-auto px-6 py-3.5 bg-primary text-surface font-bold rounded-xl hover:bg-primary-container transition active:scale-95 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer text-sm md:text-base"
             >
-              <span>{loading ? 'Trabalhando...' : 'Encurtar Trem'}</span>
+              <span>{loading ? t('linkShortener.buttonLoading') : t('linkShortener.buttonEncurtar')}</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </button>
           </div>
@@ -138,7 +140,7 @@ export default function LinkShortener() {
               className="mt-6 pt-6 border-t border-outline-variant/40 space-y-3"
             >
               <h4 className="text-xs font-bold uppercase tracking-wider text-secondary">
-                Prontinho, sô! Copie seu trem:
+                {t('linkShortener.successResult')}
               </h4>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="flex-1 px-4 py-3 bg-surface rounded-xl border border-outline-variant flex items-center justify-between font-mono text-sm overflow-hidden text-ellipsis whitespace-nowrap select-all text-primary font-semibold">
@@ -154,18 +156,18 @@ export default function LinkShortener() {
                   {copied ? (
                     <>
                       <Check className="w-4 h-4" />
-                      <span>Copiado!</span>
+                      <span>{t('linkShortener.buttonCopied')}</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-4 h-4" />
-                      <span>Copiar Trem!</span>
+                      <span>{t('linkShortener.buttonCopy')}</span>
                     </>
                   )}
                 </button>
               </div>
               <p className="text-[11px] text-on-surface-variant italic">
-                Link original apontado para:{' '}
+                {t('linkShortener.originalLinkLabel')}{' '}
                 <span className="font-mono text-[10px] break-all block sm:inline">{result.originalUrl}</span>
               </p>
             </motion.div>

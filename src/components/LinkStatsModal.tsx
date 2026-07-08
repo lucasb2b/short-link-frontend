@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Sparkles, TrendingUp, Laptop, Globe, Smartphone, Monitor, ShieldAlert, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { LinkItem, AnalyticsResponseDTO } from '../types';
 import { getLinkAnalyticsAPI } from '../services/api';
 
@@ -10,7 +11,6 @@ interface LinkStatsModalProps {
   link: LinkItem | null;
 }
 
-// Colors for the charts
 const BROWSER_COLORS: Record<string, string> = {
   'Chrome': '#EA4335',
   'Safari': '#00A2E8',
@@ -22,10 +22,8 @@ const BROWSER_COLORS: Record<string, string> = {
 function formatData(data: AnalyticsResponseDTO) {
   const formatPercentage = (val: number, total: number) => total > 0 ? Math.round((val / total) * 100) : 0;
 
-  // Process browsers
   const totalBrowsers = Object.values(data.browsers || {}).reduce((acc, val) => acc + val, 0);
   const browsers = Object.entries(data.browsers || {}).map(([name, count]) => {
-    // try to match color
     let color = BROWSER_COLORS['Outros'];
     for (const key of Object.keys(BROWSER_COLORS)) {
       if (name.toLowerCase().includes(key.toLowerCase())) {
@@ -40,7 +38,6 @@ function formatData(data: AnalyticsResponseDTO) {
     };
   }).sort((a, b) => b.percentage - a.percentage);
 
-  // Process devices
   const totalDevices = Object.values(data.deviceTypes || {}).reduce((acc, val) => acc + val, 0);
   const devices = Object.entries(data.deviceTypes || {}).map(([name, count]) => {
     let icon = Monitor;
@@ -74,6 +71,7 @@ function formatData(data: AnalyticsResponseDTO) {
 }
 
 export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModalProps) {
+  const { t } = useTranslation();
   const [data, setData] = useState<AnalyticsResponseDTO | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,12 +82,12 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
       setError(null);
       getLinkAnalyticsAPI(link.id)
         .then(res => setData(res))
-        .catch(err => setError(err.message || 'Erro ao carregar estatísticas.'))
+        .catch(err => setError(err.message || t('linkStatsModal.error')))
         .finally(() => setLoading(false));
     } else {
       setData(null);
     }
-  }, [isOpen, link]);
+  }, [isOpen, link, t]);
 
   if (!link) return null;
 
@@ -100,7 +98,6 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
-          {/* Animated Backdrop Blur */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -109,7 +106,6 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
             className="absolute inset-0 bg-primary/45 backdrop-blur-md cursor-pointer"
           />
 
-          {/* Modal Box */}
           <motion.div
             initial={{ opacity: 0, y: 15, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -117,51 +113,46 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
             transition={{ type: 'spring', duration: 0.4 }}
             className="relative bg-surface w-full max-w-2xl rounded-3xl border border-outline-variant shadow-lg flex flex-col max-h-[90vh] md:max-h-[85vh] z-10 overflow-hidden"
           >
-            {/* Header / Top Banner */}
             <div className="bg-surface-container-low border-b border-outline-variant/60 p-5 pr-14 relative shrink-0">
               <span className="text-[10px] font-sans font-black text-secondary tracking-widest uppercase block mb-1">
-                Relatório de Tráfego do Trilho 🚂
+                {t('linkStatsModal.title')}
               </span>
               <h3 className="font-serif font-black text-lg md:text-xl text-primary leading-tight truncate">
                 {link.shortUrl}
               </h3>
               <p className="text-xs text-on-surface-variant font-mono truncate mt-1">
-                Destino: {link.originalUrl}
+                {t('linkStatsModal.destination')} {link.originalUrl}
               </p>
 
-              {/* Close Button */}
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-secondary hover:bg-surface-container-high rounded-xl transition-all cursor-pointer"
-                title="Fechar Relatório"
+                title={t('linkStatsModal.close')}
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Scrollable Contents Grid */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 scrollbar-thin">
 
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20">
                   <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
-                  <p className="text-on-surface-variant font-medium text-sm">Carregando os dados da estação...</p>
+                  <p className="text-on-surface-variant font-medium text-sm">{t('linkStatsModal.loading')}</p>
                 </div>
               ) : error ? (
                 <div className="flex flex-col items-center justify-center py-20">
                   <ShieldAlert className="w-10 h-10 text-error mb-4" />
                   <p className="text-error font-bold text-sm text-center">{error}</p>
-                  <button onClick={onClose} className="mt-4 px-4 py-2 bg-surface-container rounded-lg text-primary text-xs font-bold hover:bg-surface-container-high transition">Fechar e tentar novamente</button>
+                  <button onClick={onClose} className="mt-4 px-4 py-2 bg-surface-container rounded-lg text-primary text-xs font-bold hover:bg-surface-container-high transition">{t('linkStatsModal.retry')}</button>
                 </div>
               ) : (
                 <>
-                  {/* Primary Stats Panel row */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-                    {/* Metric 1: Clicks */}
                     <div className="bg-surface-container p-4 rounded-2xl border border-outline-variant/40 flex flex-col justify-between">
                       <div className="flex items-center justify-between text-on-surface-variant mb-2">
-                        <span className="text-[11px] font-black uppercase tracking-wider">Cliqueis Totais</span>
+                        <span className="text-[11px] font-black uppercase tracking-wider">{t('linkStatsModal.totalClicks')}</span>
                         <TrendingUp className="w-4 h-4 text-secondary shrink-0" />
                       </div>
                       <div>
@@ -169,15 +160,14 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
                           {clicksToDisplay}
                         </span>
                         <span className="text-[10px] text-tertiary font-bold mt-1.5 inline-block bg-tertiary-container/10 px-2 py-0.5 rounded-full border border-tertiary-container/20">
-                          Métricas em tempo real!
+                          {t('linkStatsModal.realTime')}
                         </span>
                       </div>
                     </div>
 
-                    {/* Metric 2: Top Device */}
                     <div className="bg-surface-container p-4 rounded-2xl border border-outline-variant/40 flex flex-col justify-between">
                       <div className="flex items-center justify-between text-on-surface-variant mb-2">
-                        <span className="text-[11px] font-black uppercase tracking-wider">Principal Canal</span>
+                        <span className="text-[11px] font-black uppercase tracking-wider">{t('linkStatsModal.topChannel')}</span>
                         <Smartphone className="w-4 h-4 text-secondary shrink-0" />
                       </div>
                       <div>
@@ -186,16 +176,15 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
                         </span>
                         {stats.devices[0] && (
                           <span className="text-[11px] text-on-surface-variant/90 block mt-1 font-medium">
-                            Tem {stats.devices[0]?.percentage}% de preferência!
+                            {t('linkStatsModal.preference', { pct: stats.devices[0]?.percentage })}
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Metric 3: Top Location */}
                     <div className="bg-surface-container p-4 rounded-2xl border border-outline-variant/40 flex flex-col justify-between">
                       <div className="flex items-center justify-between text-on-surface-variant mb-2">
-                        <span className="text-[11px] font-black uppercase tracking-wider">Estação Líder</span>
+                        <span className="text-[11px] font-black uppercase tracking-wider">{t('linkStatsModal.topLocation')}</span>
                         <Globe className="w-4 h-4 text-secondary shrink-0" />
                       </div>
                       <div>
@@ -204,7 +193,7 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
                         </span>
                         {stats.locations[0] && (
                           <span className="text-[11px] text-on-surface-variant/90 block mt-1 font-medium">
-                            Com {stats.locations[0]?.count || 0} visitas diretas.
+                            {t('linkStatsModal.visitsFrom', { count: stats.locations[0]?.count || 0 })}
                           </span>
                         )}
                       </div>
@@ -212,16 +201,13 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
 
                   </div>
 
-                  {/* Multi-Column Data Breakdowns */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-                    {/* Left: Device/OS & Browser Bars */}
                     <div className="space-y-5">
 
-                      {/* Browser distribution card */}
                       <div className="bg-surface-container-high rounded-2xl p-4 sm:p-5 border border-outline-variant/50 space-y-3.5">
                         <h4 className="font-serif font-black text-xs text-primary uppercase tracking-wide border-b border-surface-container pb-2 flex items-center gap-1.5">
-                          <span>Navegadores Utilizados</span>
+                          <span>{t('linkStatsModal.browsers')}</span>
                         </h4>
 
                         <div className="space-y-3">
@@ -242,15 +228,14 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
                               </div>
                             </div>
                           )) : (
-                            <p className="text-xs text-on-surface-variant italic">Nenhum dado registrado.</p>
+                            <p className="text-xs text-on-surface-variant italic">{t('linkStatsModal.noData')}</p>
                           )}
                         </div>
                       </div>
 
-                      {/* OS distribution card */}
                       <div className="bg-surface-container-high rounded-2xl p-4 sm:p-5 border border-outline-variant/50 space-y-3.5">
                         <h4 className="font-serif font-black text-xs text-primary uppercase tracking-wide border-b border-surface-container pb-2 flex items-center gap-1.5">
-                          <span>Sistemas Operacionais & Canais</span>
+                          <span>{t('linkStatsModal.osAndChannels')}</span>
                         </h4>
 
                         <div className="space-y-3">
@@ -277,24 +262,23 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
                               </div>
                             );
                           }) : (
-                            <p className="text-xs text-on-surface-variant italic">Nenhum dado registrado.</p>
+                            <p className="text-xs text-on-surface-variant italic">{t('linkStatsModal.noData')}</p>
                           )}
                         </div>
                       </div>
 
                     </div>
 
-                    {/* Right: Geographical list */}
                     <div className="bg-surface-container-low rounded-2xl p-4 sm:p-5 border border-outline-variant/50 flex flex-col justify-between">
                       <div>
                         <h4 className="font-serif font-black text-xs text-primary uppercase tracking-wide border-b border-outline-variant/30 pb-2 flex items-center justify-between mb-3">
-                          <span>De onde vem o povo (Origem)</span>
-                          <span className="text-[10px] text-on-surface-variant font-mono font-medium">Uai-Analytics</span>
+                          <span>{t('linkStatsModal.origin')}</span>
+                          <span className="text-[10px] text-on-surface-variant font-mono font-medium">{t('linkStatsModal.analytics')}</span>
                         </h4>
 
                         {clicksToDisplay === 0 || stats.locations.length === 0 ? (
                           <div className="py-8 text-center text-xs text-on-surface-variant italic font-medium">
-                            Ninguém pegou esse trem ainda. Os dados vão aparecer quando tiver cliques!
+                            {t('linkStatsModal.noClicks')}
                           </div>
                         ) : (
                           <div className="space-y-2 max-h-[196px] overflow-y-auto pr-1">
@@ -305,7 +289,7 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
                               >
                                 <span className="text-xs font-bold text-primary font-sans">{loc.name}</span>
                                 <span className="text-[10px] font-mono font-bold text-secondary bg-surface-container px-2 py-0.5 rounded-md border border-outline-variant/30">
-                                  {loc.count} cliques
+                                  {loc.count} {t('stats.clicksLabel')}
                                 </span>
                               </div>
                             ))}
@@ -316,7 +300,7 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
                       <div className="bg-surface-container/40 p-2.5 rounded-xl border border-outline-variant/30 mt-3 flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-secondary shrink-0" />
                         <p className="text-[9px] text-on-surface-variant leading-tight">
-                          A maioria dos passageiros é de Minas, uai! Seus trilhos estão bem movimentados.
+                          {t('linkStatsModal.footerHint')}
                         </p>
                       </div>
                     </div>
@@ -327,17 +311,16 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
 
             </div>
 
-            {/* Footer containing close controls */}
             <div className="bg-surface-container-low border-t border-outline-variant/60 p-4 shrink-0 flex items-center justify-between">
               <span className="text-[10px] text-on-surface-variant/80 italic font-medium sm:block hidden">
-                Criado em: {new Date(link.createdAt).toLocaleDateString('pt-BR')}
+                {t('linkStatsModal.createdAt')} {new Date(link.createdAt).toLocaleDateString('pt-BR')}
               </span>
 
               <button
                 onClick={onClose}
                 className="px-6 py-2.5 bg-secondary text-white font-serif font-black text-xs rounded-xl hover:bg-secondary/90 transition-all cursor-pointer shadow-xs ml-auto"
               >
-                Fechar Painel
+                {t('linkStatsModal.closePanel')}
               </button>
             </div>
 
@@ -347,4 +330,3 @@ export default function LinkStatsModal({ isOpen, onClose, link }: LinkStatsModal
     </AnimatePresence>
   );
 }
-

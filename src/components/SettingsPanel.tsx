@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { User, Camera, Lock, Eye, EyeOff, Save, Trash2, Key, ShieldAlert, AlertTriangle, Sparkles } from 'lucide-react';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
 import { evaluatePasswordStrength } from '../utils/password';
@@ -14,6 +15,7 @@ export default function SettingsPanel({
   onUpdateProfile,
   onDeleteAccount,
 }: SettingsPanelProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState(currentUser.name);
   const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl || '');
 
@@ -48,7 +50,7 @@ export default function SettingsPanel({
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setProfileErr('O retrato tá pesado demais, sô! O limite é de 5MB.');
+        setProfileErr(t('settings.avatarTooLarge'));
         return;
       }
       const reader = new FileReader();
@@ -65,7 +67,7 @@ export default function SettingsPanel({
     setProfileSuccess(null);
 
     if (!name.trim()) {
-      setProfileErr('O seu nome não pode ficar em branco, uai!');
+      setProfileErr(t('settings.nameRequired'));
       return;
     }
 
@@ -77,9 +79,9 @@ export default function SettingsPanel({
     setIsSubmittingProfile(false);
 
     if (result.success) {
-      setProfileSuccess('Seu retrato e nome foram salvos com sucesso, sô!');
+      setProfileSuccess(t('settings.profileSaved'));
     } else {
-      setProfileErr(result.error || 'Erro ao salvar perfil.');
+      setProfileErr(result.error || t('settings.profileError'));
     }
   };
 
@@ -90,21 +92,21 @@ export default function SettingsPanel({
 
     // Validações básicas
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setSecurityErr('Preencha todos os campos de senha, sô!');
+      setSecurityErr(t('settings.passwordFieldsRequired'));
       return;
     }
     if (newPassword.length < 3) {
-      setSecurityErr('A nova senha precisa ter pelo menos 3 caracteres.');
+      setSecurityErr(t('settings.passwordTooShort'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setSecurityErr('As senhas novas não estão batendo! Confirme direitinho.');
+      setSecurityErr(t('settings.passwordMismatch'));
       return;
     }
 
     const strength = evaluatePasswordStrength(newPassword);
     if (strength.score < 2 || newPassword.length < 8) {
-      setSecurityErr('Sua nova senha é muito fraca ou curta. Use no mínimo 8 caracteres mesclando letras e números.');
+      setSecurityErr(t('settings.weakPasswordWarning'));
       return;
     }
 
@@ -116,12 +118,12 @@ export default function SettingsPanel({
     setIsSubmittingPassword(false);
 
     if (result.success) {
-      setSecuritySuccess('Senha alterada com sucesso!');
+      setSecuritySuccess(t('settings.passwordChanged'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } else {
-      setSecurityErr(result.error || 'Erro ao alterar senha.');
+      setSecurityErr(result.error || t('settings.passwordChangeError'));
     }
   };
 
@@ -132,7 +134,7 @@ export default function SettingsPanel({
 
   const handleConfirmDeleteAccount = async () => {
     if (deleteConfirmName !== currentUser.name) {
-      alert('Por favor, digite seu nome exatamente igual para prosseguir.');
+      alert(t('settings.confirmNameMatch'));
       return;
     }
     await onDeleteAccount();
@@ -156,9 +158,9 @@ export default function SettingsPanel({
             <User className="w-8 h-8" />
           </div>
           <div>
-            <h2 className="font-serif font-black text-2xl sm:text-3xl text-primary tracking-tight">Ajustes da Conta</h2>
+            <h2 className="font-serif font-black text-2xl sm:text-3xl text-primary tracking-tight">{t('settings.pageTitle')}</h2>
             <p className="text-sm font-sans text-on-surface-variant font-medium mt-1">
-              Mude seus dados por aqui, uai. Deixe tudo com a sua cara.
+              {t('settings.pageSubtitle')}
             </p>
           </div>
         </div>
@@ -173,7 +175,7 @@ export default function SettingsPanel({
 
           <div className="flex items-center gap-3 mb-6">
             <User className="w-5 h-5 text-secondary shrink-0" />
-            <h3 className="font-serif font-black text-xl text-primary">Informações Pessoais</h3>
+            <h3 className="font-serif font-black text-xl text-primary">{t('settings.personalInfo')}</h3>
           </div>
 
           {profileErr && (
@@ -219,18 +221,18 @@ export default function SettingsPanel({
               {/* Input for name bonitão */}
               <div className="flex-1 w-full">
                 <label className="block text-xs font-extrabold text-on-surface-variant mb-1.5" htmlFor="username">
-                  Nome bonitão (Nome de Usuário)
+                  {t('settings.usernameLabel')}
                 </label>
                 <input
                   id="username"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Seu nome bonito"
+                  placeholder={t('settings.usernamePlaceholder')}
                   className="w-full bg-surface border border-outline-variant/80 rounded-xl px-4 py-3 h-[52px] text-on-surface font-sans text-sm focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:outline-hidden outline-hidden transition-all shadow-xs"
                 />
                 <p className="text-xs text-on-surface-variant mt-2 font-medium">
-                  É assim que as pessoas vão te ver por aqui.
+                  {t('settings.usernameHint')}
                 </p>
 
                 {avatarUrl && (
@@ -239,7 +241,7 @@ export default function SettingsPanel({
                     className="inline-flex items-center gap-1.5 text-[11px] font-bold text-error mt-3.5 hover:underline"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span>Remover retrato de perfil</span>
+                    <span>{t('settings.removeAvatar')}</span>
                   </button>
                 )}
               </div>
@@ -254,12 +256,12 @@ export default function SettingsPanel({
                 {isSubmittingProfile ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Salvando trem...</span>
+                    <span>{t('settings.savingProfile')}</span>
                   </>
                 ) : (
                   <>
                     <Save className="w-4.5 h-4.5" />
-                    <span>Salvar Alterações</span>
+                    <span>{t('settings.saveChanges')}</span>
                   </>
                 )}
               </button>
@@ -271,7 +273,7 @@ export default function SettingsPanel({
         <section className="bg-surface-container-high rounded-3xl p-6 md:p-8 shadow-xs border border-outline-variant/60 relative overflow-hidden">
           <div className="flex items-center gap-3 mb-6 border-b border-outline-variant/30 pb-4">
             <Lock className="w-5 h-5 text-secondary shrink-0" />
-            <h3 className="font-serif font-black text-xl text-primary">Segurança</h3>
+            <h3 className="font-serif font-black text-xl text-primary">{t('settings.security')}</h3>
           </div>
 
           {securityErr && (
@@ -291,7 +293,7 @@ export default function SettingsPanel({
             {/* Current Password Field */}
             <div>
               <label className="block text-xs font-extrabold text-on-surface-variant mb-1.5" htmlFor="current-password">
-                Senha Atual
+                {t('settings.currentPassword')}
               </label>
               <div className="relative">
                 <input
@@ -315,7 +317,7 @@ export default function SettingsPanel({
             {/* New Password Field */}
             <div className="pt-2">
               <label className="block text-xs font-extrabold text-on-surface-variant mb-1.5" htmlFor="new-password">
-                Sua senha secreta (Nova Senha)
+                {t('settings.newPasswordLabel')}
               </label>
               <div className="relative mb-4">
                 <input
@@ -323,7 +325,7 @@ export default function SettingsPanel({
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   type={showNewPassword ? "text" : "password"}
-                  placeholder="Sua nova senha bacana"
+                  placeholder={t('settings.newPasswordPlaceholder')}
                   className="w-full bg-surface border border-outline-variant/80 rounded-xl px-4 py-3 h-[52px] text-on-surface font-sans text-sm focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:outline-hidden outline-hidden transition-all shadow-xs pr-12"
                 />
                 <button
@@ -338,7 +340,7 @@ export default function SettingsPanel({
 
               {/* Confirm Password Field */}
               <label className="block text-xs font-extrabold text-on-surface-variant mb-1.5" htmlFor="confirm-password">
-                Confirma pra gente (Confirmar Nova Senha)
+                {t('settings.confirmPasswordLabel')}
               </label>
               <div className="relative">
                 <input
@@ -346,7 +348,7 @@ export default function SettingsPanel({
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirme a nova senha do trilho"
+                  placeholder={t('settings.confirmPasswordPlaceholder')}
                   className="w-full bg-surface border border-outline-variant/80 rounded-xl px-4 py-3 h-[52px] text-on-surface font-sans text-sm focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:outline-hidden outline-hidden transition-all shadow-xs pr-12"
                 />
                 <button
@@ -368,12 +370,12 @@ export default function SettingsPanel({
                 {isSubmittingPassword ? (
                   <>
                     <span className="w-4 h-4 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-                    <span>Trocando senha...</span>
+                    <span>{t('settings.changingPassword')}</span>
                   </>
                 ) : (
                   <>
                     <Key className="w-4.5 h-4.5" />
-                    <span>Trocar Senha</span>
+                    <span>{t('settings.changePasswordBtn')}</span>
                   </>
                 )}
               </button>
@@ -389,9 +391,9 @@ export default function SettingsPanel({
             <ShieldAlert className="w-6 h-6 text-error shrink-0 mt-1" />
             <div className="flex-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h3 className="font-serif font-black text-lg text-[#93000a] mb-1">Zona de Perigo</h3>
+                <h3 className="font-serif font-black text-lg text-[#93000a] mb-1">{t('settings.dangerZone')}</h3>
                 <p className="text-xs text-[#93000a]/85 font-medium leading-relaxed">
-                  Cuidado, sô! Essa ação não tem volta. Apaga tudo de uma vez.
+                  {t('settings.dangerZoneWarning')}
                 </p>
               </div>
               <button
@@ -401,7 +403,7 @@ export default function SettingsPanel({
                 }}
                 className="bg-white border border-[#f5c6c6] text-error font-serif font-black px-4 py-2.5 rounded-xl hover:bg-error/10 transition-all active:scale-95 whitespace-nowrap cursor-pointer text-xs"
               >
-                Excluir minha conta
+                {t('settings.deleteAccountBtn')}
               </button>
             </div>
           </div>
@@ -419,23 +421,23 @@ export default function SettingsPanel({
               <div className="p-2.5 bg-error/10 text-error rounded-xl shrink-0">
                 <AlertTriangle className="w-6 h-6" />
               </div>
-              <h4 className="font-serif font-black text-xl text-primary">Tem certeza mesmo, sô?</h4>
+              <h4 className="font-serif font-black text-xl text-primary">{t('settings.deleteAccountConfirmTitle')}</h4>
             </div>
 
             <p className="text-xs text-on-surface-variant font-medium leading-relaxed">
-              Ao confirmar, todos os seus <strong>links encurtados</strong> e <strong>retratos hospedados</strong> vão sumir do mapa, igual poeira na estrada. Essa viagem não tem passagem de volta!
+              {t('settings.deleteAccountConfirmMessage')}
             </p>
 
             <div className="space-y-1.5 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
               <label className="block text-[11px] font-extrabold text-on-surface-variant" htmlFor="confirm-del-input">
-                Para confirmar, digite seu nome exatamente: <strong className="text-secondary select-all">{currentUser.name}</strong>
+                {t('settings.deleteAccountConfirmLabel')} <strong className="text-secondary select-all">{currentUser.name}</strong>
               </label>
               <input
                 id="confirm-del-input"
                 type="text"
                 value={deleteConfirmName}
                 onChange={(e) => setDeleteConfirmName(e.target.value)}
-                placeholder="Digite seu nome completo aqui..."
+                placeholder={t('settings.deleteAccountConfirmPlaceholder')}
                 className="w-full bg-surface border border-outline-variant/80 rounded-lg px-3 py-2 text-xs focus:outline-hidden text-primary"
               />
             </div>
@@ -445,14 +447,14 @@ export default function SettingsPanel({
                 onClick={() => setShowDeleteModal(false)}
                 className="px-4 py-2.5 text-xs font-serif font-black text-on-surface-variant hover:bg-surface-container rounded-xl transition cursor-pointer"
               >
-                Não, deixa quieto
+                {t('settings.deleteAccountCancel')}
               </button>
               <button
                 onClick={handleConfirmDeleteAccount}
                 disabled={deleteConfirmName !== currentUser.name}
                 className="px-4 py-2.5 bg-error text-white font-serif font-black text-xs rounded-xl hover:bg-error/90 active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
-                Sim, pode apagar tudo!
+                {t('settings.deleteAccountConfirm')}
               </button>
             </div>
           </div>

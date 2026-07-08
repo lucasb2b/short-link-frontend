@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   Link2, Image as ImageIcon, BarChart3, Settings, LogOut,
@@ -16,11 +17,12 @@ import PhotoDetailModal from '../components/PhotoDetailModal';
  * for the actual sub-page (links, photos, stats, settings).
  */
 export default function DashboardLayout() {
+  const { t } = useTranslation();
   const {
     currentUser,
     handleLogout,
   } = useAuth();
-  
+
   const {
     isStatsModalOpen, handleCloseStatsModal, selectedStatsLink
   } = useLinks();
@@ -36,10 +38,9 @@ export default function DashboardLayout() {
   };
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `w-full px-3.5 py-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-left flex items-center space-x-2.5 ${
-      isActive
-        ? 'bg-primary text-surface'
-        : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary'
+    `w-full px-3.5 py-3 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-left flex items-center space-x-2.5 ${isActive
+      ? 'bg-primary text-surface'
+      : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary'
     }`;
 
   return (
@@ -64,7 +65,7 @@ export default function DashboardLayout() {
             </div>
             <div>
               <h4 className="text-sm font-serif font-extrabold text-primary">{currentUser?.name}</h4>
-              <p className="text-[10px] text-on-surface-variant/80 italic">Passageiro de Primeira Classe</p>
+              <p className="text-[10px] text-on-surface-variant/80 italic">{t('dashboard.sidebar.passengerClass')}</p>
             </div>
           </div>
 
@@ -72,22 +73,22 @@ export default function DashboardLayout() {
           <nav className="flex flex-col space-y-1.5 pt-2">
             <NavLink to="/dashboard/links" className={navLinkClass} end>
               <Link2 className="w-4 h-4 shrink-0" />
-              <span>Meus Links Encurtados</span>
+              <span>{t('dashboard.sidebar.myShortenedLinks')}</span>
             </NavLink>
 
             <NavLink to="/dashboard/photos" className={navLinkClass} end>
               <ImageIcon className="w-4 h-4 shrink-0" />
-              <span>Minhas Fotos</span>
+              <span>{t('dashboard.sidebar.myPhotos')}</span>
             </NavLink>
 
             <NavLink to="/dashboard/stats" className={navLinkClass} end>
               <BarChart3 className="w-4 h-4 shrink-0" />
-              <span>Painel Estatístico</span>
+              <span>{t('dashboard.sidebar.statsPanel')}</span>
             </NavLink>
 
             <NavLink to="/dashboard/settings" className={navLinkClass} end>
               <Settings className="w-4 h-4 shrink-0" />
-              <span>Configurações</span>
+              <span>{t('dashboard.sidebar.settings')}</span>
             </NavLink>
           </nav>
 
@@ -98,7 +99,7 @@ export default function DashboardLayout() {
             className="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold text-error bg-error-container/10 border border-error-container/20 hover:bg-error-container/20 transition-all cursor-pointer text-left flex items-center space-x-2.5"
           >
             <LogOut className="w-4 h-4 shrink-0" />
-            <span>Sair da Estação</span>
+            <span>{t('dashboard.sidebar.logoutStation')}</span>
           </button>
         </div>
       </div>

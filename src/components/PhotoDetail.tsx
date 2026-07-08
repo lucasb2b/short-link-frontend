@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, User, Calendar, Tag, HardDrive, Copy, Check, ExternalLink, Download } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { PhotoItem } from '../types';
 
 interface PhotoDetailProps {
@@ -9,13 +10,11 @@ interface PhotoDetailProps {
 }
 
 export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
+  const { t, i18n } = useTranslation();
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
   const [copiedHtml, setCopiedHtml] = useState(false);
   const [copiedMd, setCopiedMd] = useState(false);
-
-  const htmlCode = `<img src="${photo.imageUrl}" alt="${photo.fileName}" />`;
-  const markdownCode = `![${photo.fileName}](${photo.imageUrl})`;
 
   const handleCopy = (text: string, setCopied: (v: boolean) => void) => {
     navigator.clipboard.writeText(text);
@@ -32,6 +31,8 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
     document.body.removeChild(link);
   };
 
+  const locale = i18n.language === 'pt-BR' ? 'pt-BR' : 'en-US';
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Back navigation button */}
@@ -41,13 +42,13 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
           className="inline-flex items-center space-x-1.5 px-4 py-2 bg-white text-primary font-bold border border-outline-variant/60 rounded-xl hover:bg-surface-container-low transition cursor-pointer text-sm shadow-xs"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Voltar pros Retratos</span>
+          <span>{t('photoDetail.backToPhotos')}</span>
         </button>
       </div>
 
       {/* Main Grid: Photo Box & Data Fields */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white rounded-3xl border border-outline-variant/60 overflow-hidden shadow-xs">
-        
+
         {/* Photo Box */}
         <div className="lg:col-span-7 bg-surface-container-low flex flex-col justify-center items-center border-r border-outline-variant/30 min-h-[300px] lg:min-h-[450px] p-4 relative">
           <img
@@ -65,7 +66,9 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
               <h3 className="font-serif font-black text-2xl text-primary leading-tight break-all">
                 {photo.fileName}
               </h3>
-              <p className="text-xs text-on-surface-variant font-mono mt-1 font-bold">Consumo de espaço: {photo.size}</p>
+              <p className="text-xs text-on-surface-variant font-mono mt-1 font-bold">
+                {t('photoDetail.spaceUsed')}: {photo.size}
+              </p>
             </div>
 
             <hr className="border-surface-container" />
@@ -75,7 +78,7 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
               <div className="space-y-1">
                 <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider flex items-center gap-1">
                   <User className="w-3 h-3 text-secondary" />
-                  Autor do Retrato
+                  {t('photoDetail.authorLabel')}
                 </span>
                 <span className="text-xs font-serif font-extrabold text-primary truncate max-w-full block">
                   {photo.author}
@@ -84,10 +87,10 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
               <div className="space-y-1">
                 <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-secondary" />
-                  Hospedado em
+                  {t('photoDetail.hostedOn')}
                 </span>
                 <span className="text-xs font-mono font-bold text-primary">
-                  {new Date(photo.createdAt).toLocaleDateString('pt-BR')}
+                  {new Date(photo.createdAt).toLocaleDateString(locale)}
                 </span>
               </div>
             </div>
@@ -96,7 +99,7 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
             <div className="space-y-1.5">
               <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider flex items-center gap-1">
                 <Tag className="w-3 h-3 text-secondary" />
-                Marcadores
+                {t('photoDetail.tagsLabel')}
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {photo.tags.map((tag) => (
@@ -116,18 +119,20 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
             <div className="space-y-3.5">
               <div className="flex items-center justify-between gap-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-secondary">
-                  Compartilhamento & Links Diretos
+                  {t('photoDetail.shareTitle')}
                 </h4>
                 {photo.isPrivate && (
                   <span className="text-[9px] font-bold text-error bg-error/10 border border-error/20 px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0">
-                    🔒 Link Privado / Não listado
+                    {t('photoDetail.privateBadge')}
                   </span>
                 )}
               </div>
 
               {/* 1. Share link to Photo Page (Works for Private, hides on search) */}
               <div className="space-y-1">
-                <label className="block text-[10px] font-bold text-primary uppercase">Link de Compartilhamento (Página do Retrato)</label>
+                <label className="block text-[10px] font-bold text-primary uppercase">
+                  {t('photoDetail.shareLinkLabel')}
+                </label>
                 <div className="flex items-center gap-1.5">
                   <input
                     type="text"
@@ -138,7 +143,7 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
                   <button
                     onClick={() => handleCopy(`${window.location.origin}/i/${photo.id.replace('photo-', '')}`, setCopiedShare)}
                     className="p-2 bg-primary hover:bg-primary-container border border-outline-variant/60 rounded-xl transition text-white cursor-pointer active:scale-95 shrink-0"
-                    title="Copiar Link de Compartilhamento"
+                    title={t('photoDetail.copyShareLink')}
                   >
                     {copiedShare ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4 text-white" />}
                   </button>
@@ -154,7 +159,7 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
               className="flex-1 px-4 py-2.5 bg-primary text-surface font-bold rounded-xl text-xs sm:text-sm hover:bg-primary-container transition shadow-sm cursor-pointer flex items-center justify-center space-x-1.5"
             >
               <Download className="w-4 h-4" />
-              <span>Baixar Retrato</span>
+              <span>{t('photoDetail.downloadPhoto')}</span>
             </button>
             <a
               href={photo.imageUrl}
@@ -163,7 +168,7 @@ export default function PhotoDetail({ photo, onBack }: PhotoDetailProps) {
               className="px-4 py-2.5 bg-surface border border-outline-variant text-primary font-bold rounded-xl text-xs sm:text-sm hover:bg-surface-container-low transition cursor-pointer flex items-center justify-center space-x-1.5"
             >
               <ExternalLink className="w-4 h-4" />
-              <span>Abrir Fora</span>
+              <span>{t('photoDetail.openExternal')}</span>
             </a>
           </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Train, ExternalLink, MapPin } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { LinkItem } from '../types';
 
 interface RedirectScreenProps {
@@ -9,6 +10,7 @@ interface RedirectScreenProps {
 }
 
 export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) {
+  const { t } = useTranslation();
   const [countdown, setCountdown] = useState(5);
 
   const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
@@ -17,10 +19,8 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
     API_URL = `http://${host}:8080`;
   }
 
-
   useEffect(() => {
     if (countdown === 0) {
-      // Navega para o backend usando a variável de ambiente
       const cleanShortCode = link.shortUrl.split('/').pop();
       window.location.href = `${API_URL}/${cleanShortCode}`;
       return;
@@ -54,10 +54,10 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
 
       <div className="space-y-3">
         <h2 className="font-serif font-black text-3xl text-primary">
-          Embarcando no Trem!
+          {t('redirect.title')}
         </h2>
         <p className="text-sm text-on-surface-variant font-medium max-w-sm mx-auto">
-          Arreda o pé que a locomotiva tá saindo. Você será direcionado para o destino em:
+          {t('redirect.subtitle')}
         </p>
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-secondary text-surface text-2xl font-mono font-bold border border-outline-variant select-none shadow-md">
           {countdown}
@@ -66,19 +66,16 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
 
       <div className="bg-white p-5 rounded-2xl border border-outline-variant/60 w-full text-left space-y-4 shadow-xs">
         <div>
-          <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block">Partida (Short)</span>
-          <span className="text-sm font-mono text-primary font-bold">{link.shortUrl}</span>
+          <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block">
+            {link.shortUrl}
+          </span>
         </div>
 
         <div className="relative flex items-center justify-center my-1">
           <div className="absolute left-0 right-0 h-[1.5px] bg-dashed border-t border-outline-variant/60" />
-          <span className="relative z-10 px-3 bg-white text-[10px] font-bold text-secondary font-sans uppercase">
-            Trajeto Via Catraca
-          </span>
         </div>
 
         <div>
-          <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider block">Estação de destino</span>
           <span className="text-sm font-mono text-secondary font-bold break-all block">{link.originalUrl}</span>
         </div>
       </div>
@@ -88,22 +85,21 @@ export default function RedirectScreen({ link, onCancel }: RedirectScreenProps) 
           onClick={onCancel}
           className="flex-1 px-4 py-3 border border-outline-variant rounded-xl text-xs font-bold text-primary hover:bg-surface-container-low transition cursor-pointer"
         >
-          Voltar pra Estação
+          {t('redirect.backHome')}
         </button>
 
-        {/* Botão de pulo usando o .env */}
         <a
           href={`${API_URL}/${link.shortUrl.split('/').pop()}`}
           className="flex-1 px-5 py-3 bg-primary text-surface font-bold rounded-xl text-xs sm:text-sm hover:bg-primary-container transition shadow-sm cursor-pointer flex items-center justify-center space-x-1.5"
         >
-          <span>Pular Catraca (Ir Agora)</span>
+          <span>{t('redirect.clickHere')}</span>
           <ExternalLink className="w-4 h-4" />
         </a>
       </div>
 
       <div className="text-[10px] text-on-surface-variant/70 italic flex items-center justify-center gap-1.5">
         <MapPin className="w-3.5 h-3.5 text-secondary" />
-        <span>Visita registrada sob o protocolo de segurança número {Math.floor(100000 + Math.random() * 900000)}</span>
+        <span>{t('redirect.countdown', { seconds: countdown })}</span>
       </div>
 
     </div>

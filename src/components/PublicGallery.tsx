@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Tag, Search, Calendar, User, ArrowUpRight, Copy, Check, Download, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { PhotoItem } from '../types';
 
 interface PublicGalleryProps {
@@ -9,6 +10,7 @@ interface PublicGalleryProps {
 }
 
 export default function PublicGallery({ photos, onSelectPhoto }: PublicGalleryProps) {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
@@ -23,7 +25,7 @@ export default function PublicGallery({ photos, onSelectPhoto }: PublicGalleryPr
     const matchesSearch =
       photo.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       photo.author.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesTag = selectedTag ? photo.tags.includes(selectedTag) : true;
 
     return matchesSearch && matchesTag;
@@ -36,10 +38,10 @@ export default function PublicGallery({ photos, onSelectPhoto }: PublicGalleryPr
         <div>
           <h3 className="font-serif font-black text-2xl text-primary flex items-center gap-2">
             <ImageIcon className="w-6 h-6 text-secondary" />
-            <span>Retratos Recentes do Povo</span>
+            <span>{t('publicGallery.title')}</span>
           </h3>
           <p className="text-sm text-on-surface-variant font-medium mt-1">
-            Mural público de fotos hospedadas pelos mineiros da estação.
+            {t('publicGallery.subtitle')}
           </p>
         </div>
 
@@ -49,18 +51,44 @@ export default function PublicGallery({ photos, onSelectPhoto }: PublicGalleryPr
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por nome ou fotógrafo..."
+            placeholder={t('publicGallery.searchPlaceholder')}
             className="w-full pl-9 pr-4 py-2 bg-white border border-outline-variant rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-primary focus:border-primary text-primary placeholder-on-surface-variant/60"
           />
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-on-surface-variant" />
         </div>
       </div>
 
+      {/* Tags filter chips */}
+      {uniqueTags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedTag(null)}
+            className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer border ${selectedTag === null
+                ? 'bg-primary text-surface border-primary'
+                : 'bg-surface text-on-surface-variant border-outline-variant hover:bg-surface-container-low hover:text-primary'
+              }`}
+          >
+            {t('publicGallery.allTags')}
+          </button>
+          {uniqueTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer border ${selectedTag === tag
+                  ? 'bg-secondary text-surface border-secondary'
+                  : 'bg-surface text-on-surface-variant border-outline-variant hover:bg-surface-container-low hover:text-primary'
+                }`}
+            >
+              #{tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Photos Grid listing */}
       {filteredPhotos.length === 0 ? (
         <div className="bg-surface-container/30 border border-dashed border-outline-variant rounded-2xl p-12 text-center text-on-surface-variant text-sm font-medium italic">
-          Buscamos de ponta a ponta e não achamos nenhum trem com essa busca! Tente limpar os filtros, sô.
+          {t('publicGallery.emptySearch')}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -76,7 +104,7 @@ export default function PublicGallery({ photos, onSelectPhoto }: PublicGalleryPr
                 className="group bg-white rounded-2xl border border-outline-variant/50 overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between"
               >
                 {/* Photo frame container */}
-                <div 
+                <div
                   onClick={() => onSelectPhoto(photo)}
                   className="relative aspect-square overflow-hidden cursor-pointer"
                 >
@@ -89,7 +117,7 @@ export default function PublicGallery({ photos, onSelectPhoto }: PublicGalleryPr
                   {/* Subtle black scrim */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                     <span className="text-white text-xs font-bold flex items-center space-x-1">
-                      <span>Ver Retrato e Links</span>
+                      <span>{t('publicGallery.viewPhoto')}</span>
                       <ArrowUpRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
@@ -103,7 +131,7 @@ export default function PublicGallery({ photos, onSelectPhoto }: PublicGalleryPr
                 {/* Info block */}
                 <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                   <div className="space-y-1.5">
-                    <h4 
+                    <h4
                       onClick={() => onSelectPhoto(photo)}
                       className="text-sm font-serif font-extrabold text-primary hover:text-secondary cursor-pointer truncate"
                       title={photo.fileName}
@@ -112,11 +140,28 @@ export default function PublicGallery({ photos, onSelectPhoto }: PublicGalleryPr
                     </h4>
                     <div className="flex items-center space-x-1.5 text-[11px] text-on-surface-variant">
                       <User className="w-3.5 h-3.5 text-secondary shrink-0" />
-                      <span className="truncate italic font-medium">{photo.author}</span>
+                      <span className="truncate italic font-medium">{t('publicGallery.uploadedBy', { author: photo.author })}</span>
                     </div>
                   </div>
 
-
+                  {/* Tags */}
+                  {photo.tags && photo.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {photo.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="text-[9px] font-mono font-bold bg-surface-container-high text-primary px-1.5 py-0.5 rounded-md border border-outline-variant/40"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                      {photo.tags.length > 3 && (
+                        <span className="text-[9px] font-mono font-bold text-on-surface-variant">
+                          +{photo.tags.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}

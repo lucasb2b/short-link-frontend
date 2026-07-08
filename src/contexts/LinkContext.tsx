@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getUserLinksAPI, shortenLinkAPI, revokeLinkAPI } from '../services/api';
 import { LinkItem } from '../types';
 import { useAuth } from './AuthContext';
@@ -32,6 +33,7 @@ export function useLinks(): LinkContextType {
 export function LinkProvider({ children }: { children: ReactNode }) {
   const { currentUser } = useAuth();
   const { showToast } = useToast();
+  const { t } = useTranslation();
 
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [totalLinksPages, setTotalLinksPages] = useState(1);
@@ -44,8 +46,8 @@ export function LinkProvider({ children }: { children: ReactNode }) {
   const fetchUserLinks = useCallback(async (page: number = 0) => {
     if (!currentUser) return;
     try {
-      const data = await getUserLinksAPI(page); 
-      
+      const data = await getUserLinksAPI(page);
+
       const mappedLinks: LinkItem[] = data.content.map((item: any) => {
         return {
           id: item.shortCode,
@@ -56,7 +58,7 @@ export function LinkProvider({ children }: { children: ReactNode }) {
           trend: 'stable' as const,
         };
       });
-      
+
       setLinks(mappedLinks);
       setTotalLinksPages(data.totalPages || 1);
       setTotalLinks(data.totalElements || 0);
@@ -86,19 +88,19 @@ export function LinkProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
       trend: 'stable',
     };
-    showToast('Trem encurtado com sucesso, uai!');
+    showToast(t('toast.linkShortened'));
     return newLink;
-  }, [fetchUserLinks, showToast]);
+  }, [fetchUserLinks, showToast, t]);
 
   const handleDeleteLink = useCallback(async (shortCode: string) => {
     try {
       await revokeLinkAPI(shortCode);
       setLinks((prev) => prev.filter((l) => l.id !== shortCode));
-      showToast('Link removido do trilho, sô!');
+      showToast(t('toast.linkDeleted'));
     } catch (error: any) {
-      showToast(error.message || 'Erro ao remover link.');
+      showToast(error.message || t('toast.linkDeleteError'));
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   const triggerRedirect = useCallback((link: LinkItem) => {
     setLinks((prev) =>
